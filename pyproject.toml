@@ -1,0 +1,9 @@
+[project]
+name = "aitestcraft"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "agent-framework==1.0.0rc5",
+    "fastapi>=0.133.0",
+]
