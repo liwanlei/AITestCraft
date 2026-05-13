@@ -1,9 +1,13 @@
 [project]
 name = "aitestcraft"
 version = "0.1.0"
-description = "Add your description here"
+description = "基于AI的测试用例生成和管理系统"
 requires-python = ">=3.11"
 dependencies = [
     "agent-framework==1.0.0rc5",
     "fastapi>=0.133.0",
+    "uvicorn>=0.32.0",
+    "pydantic>=2.9.0",
+    "jsonschema>=4.23.0",
+    "python-dotenv>=1.0.0",
 ]

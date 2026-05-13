@@ -1,15 +1,42 @@
-# =========================
-# Workflow（DAG引擎）
-# =========================
+# -*- coding: utf-8 -*-
 import json
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
-from config.schemas import TESTCASE_SCHEMA, REVIEW_SCHEMA, COVERAGE_SCHEMA, GAP_SCHEMA
+from config.config import Config
+from core.schemas import TESTCASE_SCHEMA, REVIEW_SCHEMA, COVERAGE_SCHEMA, GAP_SCHEMA
 from core.context import Context
 from core.node import Node
 from utils.json_utils import safe_loads
 from utils.logger import logger
-from utils.retry import should_trigger
+from core.retry import should_trigger_gap_filler
+
+
+def _filter_dict(data: Dict[str, Any], keys: tuple) -> Dict[str, Any]:
+    """过滤字典，只保留指定的键"""
+    return {k: v for k, v in data.items() if k in keys}
+
+
+def _filter_requirement(req: Any) -> Any:
+    """过滤需求数据，只保留关键字段"""
+    if isinstance(req, dict):
+        return _filter_dict(req, Config.REQUIREMENT_FILTER_KEYS)
+    return req
+
+
+def _filter_testpoints(tps: Any) -> Any:
+    """过滤测试点数据，只保留关键字段"""
+    if isinstance(tps, list):
+        return [_filter_dict(tp, Config.TESTPOINT_FILTER_KEYS) for tp in tps if isinstance(tp, dict)]
+    return tps
+
+
+class NodeConfig(NamedTuple):
+    name: str
+    agent: Any
+    input_fn: Callable[[Context], str]
+    output_key: str
+    schema: Optional[Dict] = None
+    condition: Optional[Callable[[Context], bool]] = None
 
 
 class Workflow:
@@ -17,113 +44,154 @@ class Workflow:
         self.nodes: Dict[str, Node] = {}
         self.edges: Dict[str, List[str]] = {}
 
-    def add_node(self, node: Node):
+    def add_node(self, node: Node) -> None:
         self.nodes[node.name] = node
 
-    def add_edge(self, from_node: str, to_node: str):
+    def add_edge(self, from_node: str, to_node: str) -> None:
         self.edges.setdefault(from_node, []).append(to_node)
 
-    async def _run_node(self, name: str, ctx: Context):
-        node = self.nodes[name]
-        logger.info(f"node start: {name}")
-
-        # 1. 执行当前节点
-        ctx = await node.run(ctx)
-
-        # 2. 顺序执行后继节点（关键：单线程）
-        next_nodes = self.edges.get(name, [])
-        logger.info(f"node finish: {name}")
-        logger.info(ctx)
-        for n in next_nodes:
-            ctx = await self._run_node(n, ctx)
+    async def run(self, start_node: str, ctx: Context) -> Context:
+        stack = [start_node]
+        
+        while stack:
+            node_name = stack.pop()
+            node = self.nodes[node_name]
+            
+            logger.info(f"节点开始: [{node_name}]")
+            ctx = await node.run(ctx)
+            
+            next_nodes = self.edges.get(node_name, [])
+            output_keys = [self.nodes[n].output_key for n in next_nodes]
+            logger.info(f"节点完成: [{node_name}], 输出键: {output_keys}")
+            
+            for next_node in reversed(next_nodes):
+                stack.append(next_node)
 
         return ctx
 
-    async def run(self, start_node: str, ctx: Context):
-        return await self._run_node(start_node, ctx)
 
-def build_workflow(agents):
+def _get_filtered_testpoints(ctx: Context) -> List[Dict[str, Any]]:
+    """获取过滤后的测试点，避免重复解析"""
+    if "filtered_testpoints" not in ctx:
+        raw = ctx.get("unique_testpoints", "{}")
+        parsed = safe_loads(raw)
+        ctx.set("filtered_testpoints", _filter_testpoints(parsed.get("unique_testpoints", [])))
+    return ctx["filtered_testpoints"]
+
+
+def _build_requirement_input(ctx: Context) -> str:
+    """构建需求解析节点的输入"""
+    return ctx["task"]
+
+
+def _build_testpoint_input(ctx: Context) -> str:
+    """构建测试点提取节点的输入"""
+    return json.dumps({"requirement": _filter_requirement(ctx["requirement"])}, ensure_ascii=False)
+
+
+def _build_dedup_input(ctx: Context) -> str:
+    """构建测试点去重节点的输入"""
+    return json.dumps({"testpoints": ctx["testpoint"]})
+
+
+def _build_testcase_input(ctx: Context) -> str:
+    """构建测试用例生成节点的输入"""
+    return json.dumps({"testpoints": _get_filtered_testpoints(ctx)}, ensure_ascii=False)
+
+
+def _build_review_coverage_input(ctx: Context, input_type: str) -> str:
+    """构建审查和覆盖率节点的公共输入
+    
+    Args:
+        ctx: 上下文对象
+        input_type: 输入类型（'review' 或 'coverage'）
+    
+    Returns:
+        JSON 字符串形式的输入数据
+    """
+    data = {
+        "requirement": _filter_requirement(ctx.get("requirement", {})),
+        "testpoints": _get_filtered_testpoints(ctx),
+    }
+    
+    cases = ctx.get("testcase")
+    if input_type == "review":
+        data["cases"] = cases or {}
+    elif cases:
+        data["cases"] = cases
+    
+    return json.dumps(data, ensure_ascii=False)
+
+
+def _build_review_input(ctx: Context) -> str:
+    """构建测试用例审查节点的输入"""
+    return _build_review_coverage_input(ctx, "review")
+
+
+def _build_coverage_input(ctx: Context) -> str:
+    """构建覆盖率分析节点的输入"""
+    return _build_review_coverage_input(ctx, "coverage")
+
+
+def _build_gap_input(ctx: Context) -> str:
+    """构建缺口填充节点的输入"""
+    return json.dumps({
+        "cases": ctx.get("testcase", {}),
+        "issues": ctx.get("review", {}).get("issues", []),
+        "coverage_missing": ctx.get("coverage", {}).get("missing", []),
+        "risk_level": ctx.get("review", {}).get("risk_level", "low"),
+    })
+
+
+def _gap_condition(ctx: Context) -> bool:
+    """判断是否需要执行缺口填充节点"""
+    return should_trigger_gap_filler({**ctx.get("review", {}), **ctx.get("coverage", {})})
+
+
+def build_workflow(agents: Dict[str, Any]) -> Workflow:
+    """构建工作流
+    
+    Args:
+        agents: 代理字典，包含各节点的执行代理
+    
+    Returns:
+        配置好的工作流对象
+    """
     wf = Workflow()
 
-    # -------- requirement --------
-    wf.add_node(Node(
-        "requirement",
-        agents["requirement"],
-        lambda ctx: ctx["task"],
-        "requirement"
-    ))
+    # 节点配置列表
+    node_configs = [
+        NodeConfig("requirement", agents["requirement"], _build_requirement_input, "requirement"),
+        NodeConfig("testpoint", agents["testpoint"], _build_testpoint_input, "testpoint"),
+        NodeConfig("dedup", agents["dedup"], _build_dedup_input, "unique_testpoints"),
+        NodeConfig("testcase", agents["testcase"], _build_testcase_input, "testcase", TESTCASE_SCHEMA),
+        NodeConfig("review", agents["review"], _build_review_input, "review", REVIEW_SCHEMA),
+        NodeConfig("coverage", agents["coverage"], _build_coverage_input, "coverage", COVERAGE_SCHEMA),
+        NodeConfig("gap", agents["gap"], _build_gap_input, "final_cases", GAP_SCHEMA, _gap_condition),
+    ]
 
-    # -------- testpoint --------
-    wf.add_node(Node(
-        "testpoint",
-        agents["testpoint"],
-        lambda ctx: json.dumps({"requirement": ctx["requirement"]}),
-        "testpoint"
-    ))
+    for cfg in node_configs:
+        wf.add_node(Node(
+            name=cfg.name,
+            agent=cfg.agent,
+            input_fn=cfg.input_fn,
+            output_key=cfg.output_key,
+            schema=cfg.schema,
+            condition=cfg.condition
+        ))
 
-    # -------- dedup --------
-    wf.add_node(Node(
-        "dedup",
-        agents["dedup"],
-        lambda ctx: json.dumps({"testpoints": ctx["testpoint"]}),
-        "unique_testpoints"
-    ))
+    # 边配置列表
+    edges = [
+        ("requirement", "testpoint"),
+        ("testpoint", "dedup"),
+        ("dedup", "testcase"),
+        ("testcase", "review"),
+        ("review", "coverage"),
+        ("coverage", "gap"),
+    ]
 
-    # -------- testcase --------
-    wf.add_node(Node(
-        "testcase",
-        agents["testcase"],
-        lambda ctx: json.dumps({"testpoints": safe_loads(ctx["unique_testpoints"])["unique_testpoints"]}),
-        "testcase",
-        schema=TESTCASE_SCHEMA
-    ))
-    # -------- review --------
-    wf.add_node(Node(
-        "review",
-        agents["review"],
-        lambda ctx: json.dumps({
-            "requirement": ctx.get("task"),
-            "testpoints": safe_loads(ctx["unique_testpoints"])["unique_testpoints"],
-            "cases": ctx.get("testcase", {})
-        }, ensure_ascii=False),
-        "review",
-        schema=REVIEW_SCHEMA
-    ))
-    # -------- coverage --------
-    wf.add_node(Node(
-        "coverage",
-        agents["coverage"],
-        lambda ctx: json.dumps({
-            "requirement": ctx.get("task"),
-            "testpoints": safe_loads(ctx["unique_testpoints"])["unique_testpoints"],
-            "cases": ctx.get("testcase")
-        }, ensure_ascii=False),
-        "coverage",
-        schema=COVERAGE_SCHEMA
-    ))
-    # -------- gap --------
-    wf.add_node(Node(
-        "gap",
-        agents["gap"],
-        lambda ctx: json.dumps({
-            "cases": ctx.get("testcase", {}),
-            "issues": ctx.get("review", {}).get("issues", []),
-            "coverage_missing": ctx.get("coverage", {}).get("missing", []),
-            "risk_level": ctx.get("review", {}).get("risk_level", "low"),
-        }),
-        "final_cases",
-        condition=lambda ctx: should_trigger(
-            {**ctx.get("review", {}), **ctx.get("coverage", {})}
-        ),
-        schema=GAP_SCHEMA
-    ))
-
-    # DAG关系
-    wf.add_edge("requirement", "testpoint")
-    wf.add_edge("testpoint", "dedup")
-    wf.add_edge("dedup", "testcase")
-    wf.add_edge("testcase", "review")
-    wf.add_edge("review", "coverage")
-    wf.add_edge("coverage", "gap")
+    # 创建边
+    for from_node, to_node in edges:
+        wf.add_edge(from_node, to_node)
 
     return wf

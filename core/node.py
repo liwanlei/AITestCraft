@@ -1,25 +1,32 @@
-# =========================
-# Node（执行单元）
-# =========================
-import asyncio
+# -*- coding: utf-8 -*-
+import json
+from typing import Any, Callable, Dict, Optional, TypedDict
 
+from config.config import Config
+from utils.exceptions import NodeExecutionError, SchemaValidationError
 from core.context import Context
 from storage.db import insert_log
 from utils.json_utils import safe_loads, validate_schema
 from utils.logger import logger
-from utils.retry import run_with_retry
+from core.retry import run_with_retry
+
+
+class LogEvent(TypedDict):
+    event: str
+    detail: str
 
 
 class Node:
     def __init__(
             self,
-            name,
-            agent,
-            input_fn,
-            output_key,
-            condition=None,
-            schema=None,
-            max_retry=3
+            name: str,
+            agent: Any,
+            input_fn: Callable[[Context], str],
+            output_key: str,
+            condition: Optional[Callable[[Context], bool]] = None,
+            schema: Optional[Dict] = None,
+            max_retry: int = Config.NODE_MAX_RETRY,
+            timeout: Optional[int] = Config.AGENT_TIMEOUT_SECONDS
     ):
         self.name = name
         self.agent = agent
@@ -28,52 +35,72 @@ class Node:
         self.condition = condition
         self.schema = schema
         self.max_retry = max_retry
+        self.timeout = timeout
 
-    async def run(self, ctx: Context):
-        task_id=""
-        isapi=ctx.get("isapi")
-        logger.info(isapi)
-        if isapi:
-            task_id = ctx.get("task_id")
+    def _log(self, task_id: str, event: str, detail: str = "") -> None:
+        if not task_id:
+            return
+        log_data: LogEvent = {"event": event, "detail": detail}
+        insert_log(task_id, self.name, json.dumps(log_data, ensure_ascii=False))
+
+    def _log_result(self, task_id: str, raw_result: str) -> None:
+        max_length = Config.LOG_RESULT_MAX_LENGTH
+        truncated = raw_result[:max_length] + ("..." if len(raw_result) > max_length else "")
+        self._log(task_id, "result", truncated)
+
+    async def run(self, ctx: Context) -> Context:
+        task_id = ctx.get("task_id", "")
+
         if self.condition and not self.condition(ctx):
-            logger.info(f"{self.name} skipped")
+            logger.info(f"节点 [{self.name}] 跳过")
+            self._log(task_id, "skip", "condition not met")
             return ctx
 
         payload = self.input_fn(ctx)
+        self._log(task_id, "start", f"payload_size={len(payload)}")
 
-        for i in range(self.max_retry):
+        try:
+            result = await run_with_retry(self.agent, 
+            payload, retries=self.max_retry, 
+            timeout=self.timeout)
+        except Exception as e:
+            error_msg = f"节点 [{self.name}] 多次重试仍失败: {e}"
+            logger.error(error_msg)
+            self._log(task_id, "failed", str(e))
+            raise NodeExecutionError(error_msg) from e
 
-            logger.info(f"{self.name} attempt {i + 1}")
+        raw = result.text
+        self._log_result(task_id, raw)
+        logger.debug(f"节点 [{self.name}] 原始响应: {raw}")
 
-            result = await run_with_retry(self.agent, payload)
+        usage = getattr(result, "usage", None) or getattr(result, "model_usage", None)
+        if usage:
+            ctx["token_stats"].add(self.name, usage)
 
-            raw = result.text
-            if isapi:
-                insert_log(task_id, self.name, raw)
-            logger.info(raw)
-            # 1️⃣ JSON解析
+        try:
+            parsed = safe_loads(raw)
+        except Exception as e:
+            error_msg = f"节点 [{self.name}] JSON解析失败: {e}"
+            logger.error(error_msg)
+            self._log(task_id, "parse_error", str(e))
+            raise NodeExecutionError(error_msg) from e
+
+        if self.schema:
             try:
-                parsed = safe_loads(raw)
-            except Exception as e:
-                logger.info(e)
-                logger.warning("JSON解析失败")
-                logger.warning(f"JSON解析失败, 原始内容: {raw}")
-                continue
+                validate_schema(parsed, self.schema)
+            except SchemaValidationError as e:
+                error_msg = f"节点 [{self.name}] Schema校验失败: {e}"
+                logger.error(error_msg)
+                self._log(task_id, "schema_error", str(e))
+                raise
 
-            # 2️⃣ schema校验
-            if self.schema:
-                ok = validate_schema(parsed, self.schema)
-                if not ok:
-                    logger.warning(f"{self.name} schema失败 -> retry")
-                    await asyncio.sleep(2 ** i)
-                    continue
-
-            # 3️⃣ 成功
-            logger.info(f"{self.name} success")
-            ctx.set(self.output_key, parsed)
-            return ctx
-
-        # 🚨 多次失败
-        raise ValueError(f"{self.name} 多次重试仍失败")
-
-
+        token_info = json.dumps(ctx["token_stats"].nodes.get(self.name, {}), ensure_ascii=False) if usage else ""
+        self._log(task_id, "complete", token_info)
+        
+        logger.info(f"节点 [{self.name}] 成功")
+        
+        result_preview = json.dumps(parsed, ensure_ascii=False)
+        logger.debug(f"节点 [{self.name}] 输出数据:\n{result_preview}")
+        
+        ctx.set(self.output_key, parsed)
+        return ctx

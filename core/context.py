@@ -1,25 +1,21 @@
-# =========================
-# 1. Context（全局状态）
-# =========================
+# -*- coding: utf-8 -*-
+from typing import Any, Dict, Optional
+
+
 class Context(dict):
-    def set(self, key, value):
+    def set(self, key: str, value: Any) -> "Context":
         self[key] = value
         return self
 
-    def getv(self, key, default=None):
-        return self.get(key, default)
-
 
 class TokenStats:
-
     def __init__(self):
-        self.nodes = {}
-        self.input_tokens = 0
-        self.output_tokens = 0
-        self.total_tokens = 0
+        self.nodes: Dict[str, Dict[str, int]] = {}
+        self.input_tokens: int = 0
+        self.output_tokens: int = 0
+        self.total_tokens: int = 0
 
-    def add(self, node_name, usage):
-
+    def add(self, node_name: str, usage: Optional[Dict[str, int]] = None) -> None:
         if not usage:
             return
 
@@ -42,7 +38,7 @@ class TokenStats:
         self.nodes[node_name]["output"] += output_tokens
         self.nodes[node_name]["total"] += total_tokens
 
-    def report(self):
+    def report(self) -> Dict[str, Any]:
         return {
             "workflow": {
                 "input_tokens": self.input_tokens,
@@ -51,4 +47,3 @@ class TokenStats:
             },
             "nodes": self.nodes
         }
-

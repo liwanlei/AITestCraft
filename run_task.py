@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 import asyncio
 import json
+import uuid
 
+from core.taskexecution import taskexecution
 from dotenv import load_dotenv
 
 load_dotenv()
-
-from core.taskexecution import taskexecution
 
 if __name__ == "__main__":
     task = '''- 登录方式：手机号 + 短信验证码。
@@ -15,5 +16,6 @@ if __name__ == "__main__":
     - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，
     - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算
     - 60s间隔和每日10次限额是固定的'''
-    reslut = asyncio.run(taskexecution(task=task,task_id=task,isapi=False))
-    print(json.dumps(reslut))
+    task_id = str(uuid.uuid4())
+    result = asyncio.run(taskexecution(task=task, task_id=task_id, isapi=False))
+    print(json.dumps(result))

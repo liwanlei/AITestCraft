@@ -8,9 +8,6 @@ resolution-markers = [
     "python_full_version < '3.12'",
 ]
 
-[options]
-prerelease-mode = "allow"
-
 [[package]]
 name = "a2a-sdk"
 version = "0.3.23"
@@ -510,12 +507,20 @@ source = { virtual = "." }
 dependencies = [
     { name = "agent-framework" },
     { name = "fastapi" },
+    { name = "jsonschema" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "agent-framework", specifier = "==1.0.0rc5" },
     { name = "fastapi", specifier = ">=0.133.0" },
+    { name = "jsonschema", specifier = ">=4.23.0" },
+    { name = "pydantic", specifier = ">=2.9.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "uvicorn", specifier = ">=0.32.0" },
 ]
 
 [[package]]

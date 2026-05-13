@@ -1,15 +1,29 @@
-from agent_framework import Agent
+# -*- coding: utf-8 -*-
+from typing import Dict, Optional
 
-from config.config import BASE_PROMPT
+from agent_framework import Agent, SkillsProvider
 from agent_framework.openai import OpenAIChatClient
 
-def build_agent(provider):
-    client = OpenAIChatClient()
+from agents.prompts import BASE_PROMPT
+
+_client: Optional[OpenAIChatClient] = None
+
+
+def _get_client() -> OpenAIChatClient:
+    global _client
+    if _client is None:
+        _client = OpenAIChatClient()
+    return _client
+
+
+def build_agent(provider: SkillsProvider) -> Agent:
     return Agent(
-        client=client,
+        client=_get_client(),
         name="TestAgent",
         instructions=BASE_PROMPT,
         context_providers=[provider],
     )
-def build_agents(providers):
+
+
+def build_agents(providers: Dict[str, SkillsProvider]) -> Dict[str, Agent]:
     return {k: build_agent(v) for k, v in providers.items()}

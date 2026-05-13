@@ -1,729 +1,749 @@
-[2026-04-26 21:17:01,878] [INFO] [AITestCraft] node start: requirement
-[2026-04-26 21:17:01,878] [INFO] [AITestCraft] False
-[2026-04-26 21:17:01,878] [INFO] [AITestCraft] requirement attempt 1
-[2026-04-26 21:17:31,383] [INFO] [AITestCraft] 
+[2026-05-10 21:29:40,833] [INFO] [AITestCraft] 配置验证通过
+[2026-05-10 21:29:40,846] [INFO] [AITestCraft] ========== 任务开始执行 ==========
+[2026-05-10 21:29:40,846] [INFO] [AITestCraft] 任务ID: 89583379...
+[2026-05-10 21:29:40,846] [INFO] [AITestCraft] 任务内容长度: 259 字符
+[2026-05-10 21:29:40,846] [INFO] [AITestCraft] API模式: False
+[2026-05-10 21:29:40,855] [INFO] [AITestCraft] 技能提供者数量: 7
+[2026-05-10 21:29:41,041] [INFO] [AITestCraft] 任务已创建，等待工作流执行...
+[2026-05-10 21:29:41,042] [INFO] [AITestCraft] ========== 工作流开始执行 ==========
+[2026-05-10 21:29:41,042] [INFO] [AITestCraft] 节点开始: [requirement]
+[2026-05-10 21:30:40,462] [INFO] [AITestCraft] 节点 [requirement] 成功
+[2026-05-10 21:30:40,462] [INFO] [AITestCraft] 节点 [requirement] 输出数据:
 {
-  "module": "用户认证",
+  "module": "用户登录",
   "feature": "手机号验证码登录",
-  "actors": ["新用户", "老用户", "黑名单用户", "冻结用户"],
-  "inputs": ["手机号（11位大陆号码）", "6位数字验证码", "带+86的手机号", "带空格的手机号"],
-  "actions": ["输入手机号", "获取短信验证码", "输入验证码", "点击登录", "自动注册", "多端登录"],
-  "outputs": ["登录成功", "验证码错误提示", "验证码过期提示", "发送间隔提示", "日限额提示", "黑名单冻结提示", "注册成功"],
-  "rules": ["验证码6位数字", "验证码有效期5分钟", "同手机号发送间隔≥60秒", "每日上限10次", "新用户自动注册", "只支持大陆手机号", "多端支持App/小程序/H5", "服务端控制黑名单"],
-  "edge_cases": ["手机号带空格格式", "手机号带+86前缀", "验证码刚过期", "正好60秒间隔重发", "正好第10次发送", "多设备同时登录"],
-  "exceptions": ["验证码错误", "验证码过期", "手机号在黑名单", "账号被冻结", "超出日发送限额", "60秒内重复发送", "非大陆手机号", "网络异常"]
+  "actors": [
+    "未登录用户",
+    "新用户",
+    "被冻结用户",
+    "黑名单用户"
+  ],
+  "inputs": [
+    "11位手机号",
+    "6位数字验证码"
+  ],
+  "actions": [
+    "输入手机号",
+    "获取验证码",
+    "输入验证码",
+    "点击登录"
+  ],
+  "outputs": [
+    "登录成功",
+    "自动注册并登录",
+    "验证码错误提示",
+    "验证码过期提示",
+    "登录失败提示",
+    "账号被冻结提示",
+    "账号在黑名单提示"
+  ],
+  "rules": [
+    "验证码6位数字",
+    "验证码有效期5分钟",
+    "同手机号发送间隔≥60s",
+    "日发送上限10次",
+    "手机号大陆11位",
+    "支持+86前缀",
+    "支持带空格",
+    "新用户自动注册",
+    "黑名单/冻结不可登录"
+  ],
+  "edge_cases": [
+    "验证码刚好过期",
+    "手机号带+86",
+    "手机号带空格",
+    "新用户首次登录",
+    "达到日发送上限",
+    "60秒发送间隔未到"
+  ],
+  "exceptions": [
+    "验证码错误",
+    "验证码过期",
+    "手机号格式错误",
+    "账号被冻结",
+    "账号在黑名单",
+    "获取验证码频率超限",
+    "日发送次数超限"
+  ]
 }
-[2026-04-26 21:17:31,385] [INFO] [AITestCraft] requirement success
-[2026-04-26 21:17:31,385] [INFO] [AITestCraft] node finish: requirement
-[2026-04-26 21:17:31,385] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}}
-[2026-04-26 21:17:31,385] [INFO] [AITestCraft] node start: testpoint
-[2026-04-26 21:17:31,386] [INFO] [AITestCraft] False
-[2026-04-26 21:17:31,386] [INFO] [AITestCraft] testpoint attempt 1
-[2026-04-26 21:19:09,219] [INFO] [AITestCraft] 
+[2026-05-10 21:30:40,462] [INFO] [AITestCraft] 节点完成: [requirement], 输出键: ['testpoint']
+[2026-05-10 21:30:40,462] [INFO] [AITestCraft] 节点开始: [testpoint]
+[2026-05-10 21:32:36,996] [INFO] [AITestCraft] 节点 [testpoint] 成功
+[2026-05-10 21:32:36,997] [INFO] [AITestCraft] 节点 [testpoint] 输出数据:
 [
   {
     "id": "TP001",
-    "module": "用户认证",
+    "module": "登录",
     "type": "functional",
-    "test_point": "新用户输入有效手机号获取验证码并成功登录",
+    "test_point": "已注册用户使用正确手机号和验证码成功登录",
     "priority": "P0"
   },
   {
     "id": "TP002",
-    "module": "用户认证",
+    "module": "登录",
     "type": "functional",
-    "test_point": "老用户输入有效手机号获取验证码并成功登录",
+    "test_point": "新用户首次登录自动注册并登录",
     "priority": "P0"
   },
   {
     "id": "TP003",
-    "module": "用户认证",
-    "type": "functional",
-    "test_point": "用户输入11位标准大陆手机号正常获取验证码",
-    "priority": "P0"
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "验证码刚好过期时登录",
+    "priority": "P1"
   },
   {
     "id": "TP004",
-    "module": "用户认证",
-    "type": "functional",
-    "test_point": "用户输入带+86前缀的手机号正常获取验证码",
-    "priority": "P0"
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "手机号输入带+86前缀",
+    "priority": "P1"
   },
   {
     "id": "TP005",
-    "module": "用户认证",
-    "type": "functional",
-    "test_point": "用户输入带空格的手机号系统自动处理并正常获取验证码",
-    "priority": "P0"
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "手机号输入带空格",
+    "priority": "P1"
   },
   {
     "id": "TP006",
-    "module": "用户认证",
-    "type": "functional",
-    "test_point": "用户输入正确的6位数字验证码成功登录",
-    "priority": "P0"
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "验证码5分钟有效期边界测试",
+    "priority": "P1"
   },
   {
     "id": "TP007",
-    "module": "用户认证",
-    "type": "functional",
-    "test_point": "新用户登录成功后系统自动注册账号",
-    "priority": "P0"
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "60秒发送间隔刚好达到",
+    "priority": "P1"
   },
   {
     "id": "TP008",
-    "module": "用户认证",
-    "type": "functional",
-    "test_point": "多端登录功能正常工作（App/小程序/H5）",
-    "priority": "P0"
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "日发送验证码达到10次上限",
+    "priority": "P1"
   },
   {
     "id": "TP009",
-    "module": "用户认证",
-    "type": "boundary",
-    "test_point": "验证码刚好60秒间隔后重新发送",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "验证码输入错误提示",
     "priority": "P1"
   },
   {
     "id": "TP010",
-    "module": "用户认证",
-    "type": "boundary",
-    "test_point": "验证码刚好第10次发送成功",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "验证码过期提示",
     "priority": "P1"
   },
   {
     "id": "TP011",
-    "module": "用户认证",
-    "type": "boundary",
-    "test_point": "验证码在5分钟有效期内最后秒数登录成功",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "手机号格式错误",
     "priority": "P1"
   },
   {
     "id": "TP012",
-    "module": "用户认证",
+    "module": "登录",
     "type": "exception",
-    "test_point": "用户输入错误验证码系统提示验证码错误",
+    "test_point": "60秒内重复发送验证码频率超限",
     "priority": "P1"
   },
   {
     "id": "TP013",
-    "module": "用户认证",
+    "module": "登录",
     "type": "exception",
-    "test_point": "验证码过期后用户输入系统提示验证码过期",
+    "test_point": "日发送验证码次数超限",
     "priority": "P1"
   },
   {
     "id": "TP014",
-    "module": "用户认证",
-    "type": "exception",
-    "test_point": "60秒内重复发送验证码系统提示发送间隔限制",
-    "priority": "P1"
+    "module": "登录",
+    "type": "security",
+    "test_point": "被冻结用户登录提示账号被冻结",
+    "priority": "P0"
   },
   {
     "id": "TP015",
-    "module": "用户认证",
-    "type": "exception",
-    "test_point": "每日超过10次发送限制系统提示日限额",
-    "priority": "P1"
+    "module": "登录",
+    "type": "security",
+    "test_point": "黑名单用户登录提示账号在黑名单",
+    "priority": "P0"
   },
   {
     "id": "TP016",
-    "module": "用户认证",
-    "type": "exception",
-    "test_point": "非大陆手机号输入系统提示不支持",
+    "module": "登录",
+    "type": "functional",
+    "test_point": "验证码6位数字格式验证",
     "priority": "P1"
   },
   {
     "id": "TP017",
-    "module": "用户认证",
-    "type": "exception",
-    "test_point": "网络异常时验证码发送失败处理",
-    "priority": "P2"
+    "module": "登录",
+    "type": "functional",
+    "test_point": "手机号大陆11位格式验证",
+    "priority": "P1"
   },
   {
     "id": "TP018",
-    "module": "用户认证",
-    "type": "security",
-    "test_point": "黑名单用户登录系统提示账号异常",
-    "priority": "P0"
-  },
-  {
-    "id": "TP019",
-    "module": "用户认证",
-    "type": "security",
-    "test_point": "冻结账号用户登录系统提示账号冻结",
-    "priority": "P0"
-  },
-  {
-    "id": "TP020",
-    "module": "用户认证",
-    "type": "security",
-    "test_point": "验证码长度不是6位时系统拒绝登录",
-    "priority": "P1"
-  },
-  {
-    "id": "TP021",
-    "module": "用户认证",
+    "module": "登录",
     "type": "boundary",
-    "test_point": "多设备同时登录同一账号的并发处理",
-    "priority": "P1"
+    "test_point": "60秒发送间隔未到尝试发送",
+    "priority": "P2"
   }
 ]
-[2026-04-26 21:19:09,223] [INFO] [AITestCraft] testpoint success
-[2026-04-26 21:19:09,223] [INFO] [AITestCraft] node finish: testpoint
-[2026-04-26 21:19:09,223] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}, 'testpoint': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入11位标准大陆手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP004', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带+86前缀的手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP005', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带空格的手机号系统自动处理并正常获取验证码', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好60秒间隔后重新发送', 'priority': 'P1'}, {'id': 'TP010', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好第10次发送成功', 'priority': 'P1'}, {'id': 'TP011', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码在5分钟有效期内最后秒数登录成功', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}]}
-[2026-04-26 21:19:09,224] [INFO] [AITestCraft] node start: dedup
-[2026-04-26 21:19:09,224] [INFO] [AITestCraft] False
-[2026-04-26 21:19:09,225] [INFO] [AITestCraft] dedup attempt 1
-[2026-04-26 21:22:16,697] [INFO] [AITestCraft] 
+[2026-05-10 21:32:36,997] [INFO] [AITestCraft] 节点完成: [testpoint], 输出键: ['unique_testpoints']
+[2026-05-10 21:32:36,997] [INFO] [AITestCraft] 节点开始: [dedup]
+[2026-05-10 21:33:53,385] [INFO] [AITestCraft] 节点 [dedup] 成功
+[2026-05-10 21:33:53,386] [INFO] [AITestCraft] 节点 [dedup] 输出数据:
 {
   "unique_testpoints": [
     {
       "id": "TP001",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
+      "module": "登录",
       "type": "functional",
-      "test_point": "\u65b0\u7528\u6237\u8f93\u5165\u6709\u6548\u624b\u673a\u53f7\u83b7\u53d6\u9a8c\u8bc1\u7801\u5e76\u6210\u529f\u767b\u5f55",
+      "test_point": "已注册用户使用正确手机号和验证码成功登录",
       "priority": "P0"
     },
     {
       "id": "TP002",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
+      "module": "登录",
       "type": "functional",
-      "test_point": "\u8001\u7528\u6237\u8f93\u5165\u6709\u6548\u624b\u673a\u53f7\u83b7\u53d6\u9a8c\u8bc1\u7801\u5e76\u6210\u529f\u767b\u5f55",
+      "test_point": "新用户首次登录自动注册并登录",
       "priority": "P0"
     },
     {
       "id": "TP003",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "functional",
-      "test_point": "\u7528\u6237\u8f93\u5165\u624b\u673a\u53f7\u683c\u5f0f\u6b63\u786e\u60c5\u51b5\u4e0b\u83b7\u53d6\u9a8c\u8bc1\u7801\uff08\u5305\u62ec11\u4f4d\u6807\u51c6\u3001+86\u524d\u7f00\u3001\u5e26\u7a7a\u683c\uff09",
-      "priority": "P0"
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "验证码刚好过期时登录",
+      "priority": "P1"
+    },
+    {
+      "id": "TP004",
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "手机号输入带+86前缀",
+      "priority": "P1"
+    },
+    {
+      "id": "TP005",
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "手机号输入带空格",
+      "priority": "P1"
     },
     {
       "id": "TP006",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "functional",
-      "test_point": "\u7528\u6237\u8f93\u5165\u6b63\u786e\u76846\u4f4d\u6570\u5b57\u9a8c\u8bc1\u7801\u6210\u529f\u767b\u5f55",
-      "priority": "P0"
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "验证码5分钟有效期边界测试",
+      "priority": "P1"
     },
     {
       "id": "TP007",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "functional",
-      "test_point": "\u65b0\u7528\u6237\u767b\u5f55\u6210\u529f\u540e\u7cfb\u7edf\u81ea\u52a8\u6ce8\u518c\u8d26\u53f7",
-      "priority": "P0"
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "60秒发送间隔刚好达到",
+      "priority": "P1"
     },
     {
       "id": "TP008",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "functional",
-      "test_point": "\u591a\u7aef\u767b\u5f55\u529f\u80fd\u6b63\u5e38\u5de5\u4f5c\uff08App/\u5c0f\u7a0b\u5e8f/H5\uff09",
-      "priority": "P0"
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "日发送验证码达到10次上限",
+      "priority": "P1"
     },
     {
       "id": "TP009",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "boundary",
-      "test_point": "\u9a8c\u8bc1\u7801\u53d1\u9001\u95f4\u9694\u9650\u5236\u6d4b\u8bd5\uff0860\u79d2\u95f4\u9694\u91cd\u65b0\u53d1\u9001\u300110\u6b21\u53d1\u9001\u9650\u5236\u30015\u5206\u949f\u6709\u6548\u671f\uff09",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "验证码输入错误提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP010",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "验证码过期提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP011",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "手机号格式错误",
       "priority": "P1"
     },
     {
       "id": "TP012",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
+      "module": "登录",
       "type": "exception",
-      "test_point": "\u7528\u6237\u8f93\u5165\u9519\u8bef\u9a8c\u8bc1\u7801\u7cfb\u7edf\u63d0\u793a\u9a8c\u8bc1\u7801\u9519\u8bef",
+      "test_point": "60秒内重复发送验证码频率超限",
       "priority": "P1"
     },
     {
       "id": "TP013",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
+      "module": "登录",
       "type": "exception",
-      "test_point": "\u9a8c\u8bc1\u7801\u8fc7\u671f\u540e\u7528\u6237\u8f93\u5165\u7cfb\u7edf\u63d0\u793a\u9a8c\u8bc1\u7801\u8fc7\u671f",
+      "test_point": "日发送验证码次数超限",
       "priority": "P1"
     },
     {
       "id": "TP014",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "exception",
-      "test_point": "60\u79d2\u5185\u91cd\u590d\u53d1\u9001\u9a8c\u8bc1\u7801\u7cfb\u7edf\u63d0\u793a\u53d1\u9001\u95f4\u9694\u9650\u5236",
-      "priority": "P1"
+      "module": "登录",
+      "type": "security",
+      "test_point": "被冻结用户登录提示账号被冻结",
+      "priority": "P0"
     },
     {
       "id": "TP015",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "exception",
-      "test_point": "\u6bcf\u65e5\u8d85\u8fc710\u6b21\u53d1\u9001\u9650\u5236\u7cfb\u7edf\u63d0\u793a\u65e5\u9650\u989d",
-      "priority": "P1"
+      "module": "登录",
+      "type": "security",
+      "test_point": "黑名单用户登录提示账号在黑名单",
+      "priority": "P0"
     },
     {
       "id": "TP016",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "exception",
-      "test_point": "\u975e\u5927\u9646\u624b\u673a\u53f7\u8f93\u5165\u7cfb\u7edf\u63d0\u793a\u4e0d\u652f\u6301",
+      "module": "登录",
+      "type": "functional",
+      "test_point": "验证码6位数字格式验证",
       "priority": "P1"
     },
     {
       "id": "TP017",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "exception",
-      "test_point": "\u7f51\u7edc\u5f02\u5e38\u65f6\u9a8c\u8bc1\u7801\u53d1\u9001\u5931\u8d25\u5904\u7406",
-      "priority": "P2"
-    },
-    {
-      "id": "TP018",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "security",
-      "test_point": "\u9ed1\u540d\u5355\u7528\u6237\u767b\u5f55\u7cfb\u7edf\u63d0\u793a\u8d26\u53f7\u5f02\u5e38",
-      "priority": "P0"
-    },
-    {
-      "id": "TP019",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "security",
-      "test_point": "\u51bb\u7ed3\u8d26\u53f7\u7528\u6237\u767b\u5f55\u7cfb\u7edf\u63d0\u793a\u8d26\u53f7\u51bb\u7ed3",
-      "priority": "P0"
-    },
-    {
-      "id": "TP020",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
-      "type": "security",
-      "test_point": "\u9a8c\u8bc1\u7801\u957f\u5ea6\u4e0d\u662f6\u4f4d\u65f6\u7cfb\u7edf\u62d2\u7edd\u767b\u5f55",
+      "module": "登录",
+      "type": "functional",
+      "test_point": "手机号大陆11位格式验证",
       "priority": "P1"
     },
     {
-      "id": "TP021",
-      "module": "\u7528\u6237\u8ba4\u8bc1",
+      "id": "TP018",
+      "module": "登录",
       "type": "boundary",
-      "test_point": "\u591a\u8bbe\u5907\u540c\u65f6\u767b\u5f55\u540c\u4e00\u8d26\u53f7\u7684\u5e76\u53d1\u5904\u7406",
+      "test_point": "60秒发送间隔未到尝试发送",
+      "priority": "P2"
+    }
+  ],
+  "duplicates": []
+}
+[2026-05-10 21:33:53,386] [INFO] [AITestCraft] 节点完成: [dedup], 输出键: ['testcase']
+[2026-05-10 21:33:53,386] [INFO] [AITestCraft] 节点开始: [testcase]
+[2026-05-10 21:35:53,389] [WARNING] [AITestCraft] Agent超时 (120秒): , 1秒后重试 (1/3)
+[2026-05-10 21:35:54,389] [INFO] [AITestCraft] 第 2 次重试开始
+[2026-05-13 06:02:59,568] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:02:59,587] [INFO] [AITestCraft] ========== 任务开始执行 ==========
+[2026-05-13 06:02:59,587] [INFO] [AITestCraft] 任务ID: 80e195e3...
+[2026-05-13 06:02:59,587] [INFO] [AITestCraft] 任务内容长度: 259 字符
+[2026-05-13 06:02:59,587] [INFO] [AITestCraft] API模式: False
+[2026-05-13 06:02:59,602] [INFO] [AITestCraft] 技能提供者数量: 7
+[2026-05-13 06:02:59,865] [INFO] [AITestCraft] 任务已创建，等待工作流执行...
+[2026-05-13 06:02:59,865] [INFO] [AITestCraft] ========== 工作流开始执行 ==========
+[2026-05-13 06:02:59,865] [INFO] [AITestCraft] 节点开始: [requirement]
+[2026-05-13 06:04:09,054] [INFO] [AITestCraft] 节点 [requirement] 成功
+[2026-05-13 06:04:09,057] [INFO] [AITestCraft] 节点 [requirement] 输出数据:
+{
+  "module": "登录",
+  "feature": "手机号验证码登录",
+  "actors": [
+    "未登录用户",
+    "新用户",
+    "黑名单用户",
+    "冻结用户"
+  ],
+  "inputs": [
+    "手机号",
+    "6位数字验证码"
+  ],
+  "actions": [
+    "输入手机号",
+    "获取验证码",
+    "输入验证码",
+    "点击登录"
+  ],
+  "outputs": [
+    "登录成功跳转首页",
+    "自动注册成功",
+    "验证码错误提示",
+    "验证码过期提示",
+    "发送间隔提示",
+    "日限额提示",
+    "黑名单提示",
+    "冻结提示"
+  ],
+  "rules": [
+    "验证码6位数字",
+    "有效期5分钟",
+    "同手机号发送间隔≥60s",
+    "日上限10次",
+    "手机号大陆11位",
+    "支持带/不带空格与+86",
+    "新用户自动注册并登录",
+    "黑名单/冻结不可登录",
+    "多端支持App/小程序/H5",
+    "有效期从生成时间算起"
+  ],
+  "edge_cases": [
+    "验证码刚好过期",
+    "手机号带+86前缀",
+    "手机号带空格",
+    "手机号不带前缀",
+    "新用户首次登录",
+    "刚好达到60s间隔",
+    "刚好达到每日10次限额"
+  ],
+  "exceptions": [
+    "验证码错误",
+    "验证码过期",
+    "手机号格式错误",
+    "60s内重复发送",
+    "超过每日10次限额",
+    "黑名单用户登录",
+    "冻结用户登录",
+    "自动注册失败",
+    "网络异常"
+  ]
+}
+[2026-05-13 06:04:09,058] [INFO] [AITestCraft] 节点完成: [requirement], 输出键: ['testpoint']
+[2026-05-13 06:04:09,058] [INFO] [AITestCraft] 节点开始: [testpoint]
+[2026-05-13 06:05:58,377] [INFO] [AITestCraft] 节点 [testpoint] 成功
+[2026-05-13 06:05:58,379] [INFO] [AITestCraft] 节点 [testpoint] 输出数据:
+[
+  {
+    "id": "TP001",
+    "module": "登录",
+    "type": "functional",
+    "test_point": "已注册用户手机号验证码正确登录",
+    "priority": "P0"
+  },
+  {
+    "id": "TP002",
+    "module": "登录",
+    "type": "functional",
+    "test_point": "新用户手机号验证码正确自动注册并登录",
+    "priority": "P0"
+  },
+  {
+    "id": "TP003",
+    "module": "登录",
+    "type": "functional",
+    "test_point": "手机号带+86前缀登录",
+    "priority": "P0"
+  },
+  {
+    "id": "TP004",
+    "module": "登录",
+    "type": "functional",
+    "test_point": "手机号带空格登录",
+    "priority": "P0"
+  },
+  {
+    "id": "TP005",
+    "module": "登录",
+    "type": "functional",
+    "test_point": "手机号不带前缀登录",
+    "priority": "P0"
+  },
+  {
+    "id": "TP006",
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "验证码刚好过期时登录",
+    "priority": "P1"
+  },
+  {
+    "id": "TP007",
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "刚好达到60s发送间隔获取验证码",
+    "priority": "P1"
+  },
+  {
+    "id": "TP008",
+    "module": "登录",
+    "type": "boundary",
+    "test_point": "刚好达到每日10次限额获取验证码",
+    "priority": "P1"
+  },
+  {
+    "id": "TP009",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "验证码错误登录提示",
+    "priority": "P1"
+  },
+  {
+    "id": "TP010",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "验证码过期登录提示",
+    "priority": "P1"
+  },
+  {
+    "id": "TP011",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "手机号格式错误提示",
+    "priority": "P1"
+  },
+  {
+    "id": "TP012",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "60s内重复发送验证码提示",
+    "priority": "P1"
+  },
+  {
+    "id": "TP013",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "超过每日10次限额提示",
+    "priority": "P1"
+  },
+  {
+    "id": "TP014",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "自动注册失败处理",
+    "priority": "P2"
+  },
+  {
+    "id": "TP015",
+    "module": "登录",
+    "type": "exception",
+    "test_point": "网络异常登录处理",
+    "priority": "P2"
+  },
+  {
+    "id": "TP016",
+    "module": "登录",
+    "type": "security",
+    "test_point": "黑名单用户登录拦截",
+    "priority": "P0"
+  },
+  {
+    "id": "TP017",
+    "module": "登录",
+    "type": "security",
+    "test_point": "冻结用户登录拦截",
+    "priority": "P0"
+  },
+  {
+    "id": "TP018",
+    "module": "登录",
+    "type": "compatibility",
+    "test_point": "App端登录功能兼容性",
+    "priority": "P1"
+  },
+  {
+    "id": "TP019",
+    "module": "登录",
+    "type": "compatibility",
+    "test_point": "小程序端登录功能兼容性",
+    "priority": "P1"
+  },
+  {
+    "id": "TP020",
+    "module": "登录",
+    "type": "compatibility",
+    "test_point": "H5端登录功能兼容性",
+    "priority": "P1"
+  }
+]
+[2026-05-13 06:05:58,380] [INFO] [AITestCraft] 节点完成: [testpoint], 输出键: ['unique_testpoints']
+[2026-05-13 06:05:58,380] [INFO] [AITestCraft] 节点开始: [dedup]
+[2026-05-13 06:07:58,418] [WARNING] [AITestCraft] Agent超时 (120秒): , 1秒后重试 (1/3)
+[2026-05-13 06:07:59,423] [INFO] [AITestCraft] 第 2 次重试开始
+[2026-05-13 06:09:00,888] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:09:29,127] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:09:56,363] [INFO] [AITestCraft] 节点 [dedup] 成功
+[2026-05-13 06:09:56,365] [INFO] [AITestCraft] 节点 [dedup] 输出数据:
+{
+  "unique_testpoints": [
+    {
+      "id": "TP001",
+      "module": "登录",
+      "type": "functional",
+      "test_point": "已注册用户手机号验证码正确登录",
+      "priority": "P0"
+    },
+    {
+      "id": "TP002",
+      "module": "登录",
+      "type": "functional",
+      "test_point": "新用户手机号验证码正确自动注册并登录",
+      "priority": "P0"
+    },
+    {
+      "id": "TP003",
+      "module": "登录",
+      "type": "functional",
+      "test_point": "手机号不同格式登录（带+86前缀、带空格、不带前缀）",
+      "priority": "P0"
+    },
+    {
+      "id": "TP006",
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "验证码刚好过期时登录",
+      "priority": "P1"
+    },
+    {
+      "id": "TP007",
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "刚好达到60s发送间隔获取验证码",
+      "priority": "P1"
+    },
+    {
+      "id": "TP008",
+      "module": "登录",
+      "type": "boundary",
+      "test_point": "刚好达到每日10次限额获取验证码",
+      "priority": "P1"
+    },
+    {
+      "id": "TP009",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "验证码错误登录提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP010",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "验证码过期登录提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP011",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "手机号格式错误提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP012",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "60s内重复发送验证码提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP013",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "超过每日10次限额提示",
+      "priority": "P1"
+    },
+    {
+      "id": "TP014",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "自动注册失败处理",
+      "priority": "P2"
+    },
+    {
+      "id": "TP015",
+      "module": "登录",
+      "type": "exception",
+      "test_point": "网络异常登录处理",
+      "priority": "P2"
+    },
+    {
+      "id": "TP016",
+      "module": "登录",
+      "type": "security",
+      "test_point": "黑名单用户登录拦截",
+      "priority": "P0"
+    },
+    {
+      "id": "TP017",
+      "module": "登录",
+      "type": "security",
+      "test_point": "冻结用户登录拦截",
+      "priority": "P0"
+    },
+    {
+      "id": "TP018",
+      "module": "登录",
+      "type": "compatibility",
+      "test_point": "多端登录功能兼容性（App、小程序、H5）",
       "priority": "P1"
     }
   ],
   "duplicates": [
     {
       "original": "TP003",
-      "duplicates": ["TP004", "TP005"]
+      "duplicates": [
+        "TP004",
+        "TP005"
+      ]
     },
     {
-      "original": "TP009",
-      "duplicates": ["TP010", "TP011"]
+      "original": "TP018",
+      "duplicates": [
+        "TP019",
+        "TP020"
+      ]
     }
   ]
 }
-[2026-04-26 21:22:16,698] [INFO] [AITestCraft] dedup success
-[2026-04-26 21:22:16,698] [INFO] [AITestCraft] node finish: dedup
-[2026-04-26 21:22:16,698] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}, 'testpoint': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入11位标准大陆手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP004', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带+86前缀的手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP005', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带空格的手机号系统自动处理并正常获取验证码', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好60秒间隔后重新发送', 'priority': 'P1'}, {'id': 'TP010', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好第10次发送成功', 'priority': 'P1'}, {'id': 'TP011', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码在5分钟有效期内最后秒数登录成功', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'unique_testpoints': {'unique_testpoints': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入手机号格式正确情况下获取验证码（包括11位标准、+86前缀、带空格）', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码发送间隔限制测试（60秒间隔重新发送、10次发送限制、5分钟有效期）', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'duplicates': [{'original': 'TP003', 'duplicates': ['TP004', 'TP005']}, {'original': 'TP009', 'duplicates': ['TP010', 'TP011']}]}}
-[2026-04-26 21:22:16,699] [INFO] [AITestCraft] node start: testcase
-[2026-04-26 21:22:16,699] [INFO] [AITestCraft] False
-[2026-04-26 21:22:16,699] [INFO] [AITestCraft] testcase attempt 1
-[2026-04-26 21:26:02,800] [INFO] [AITestCraft] 
-[
-  {
-    "id": "TC001",
-    "name": "用户认证_新用户有效手机号登录_成功登录",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入手机号13800138000",
-      "点击获取验证码按钮",
-      "收到SMS验证码并输入6位数字验证码",
-      "点击登录按钮"
-    ],
-    "assert": [
-      "页面跳转至首页",
-      "显示用户昵称或头像",
-      "系统生成新的用户ID",
-      "登录状态保持"
-    ]
-  },
-  {
-    "id": "TC002",
-    "name": "用户认证_新用户登录_自动注册账号",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入新手机号13900139000",
-      "点击获取验证码按钮",
-      "输入收到的6位验证码",
-      "点击登录按钮"
-    ],
-    "assert": [
-      "系统自动创建新账号",
-      "用户信息包含手机号13900139000",
-      "返回新建用户ID",
-      "页面显示注册成功提示"
-    ]
-  },
-  {
-    "id": "TC003",
-    "name": "用户认证_手机号格式_11位标准号登录成功",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入11位标准手机号15000150000",
-      "点击获取验证码",
-      "输入正确验证码123456",
-      "点击登录按钮"
-    ],
-    "assert": [
-      "验证码发送成功",
-      "登录成功跳转首页",
-      "显示正确用户信息"
-    ]
-  },
-  {
-    "id": "TC004",
-    "name": "用户认证_手机号格式_带+86前缀登录成功",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入手机号+8615100150001",
-      "点击获取验证码",
-      "输入正确验证码654321",
-      "点击登录按钮"
-    ],
-    "assert": [
-      "系统识别+86前缀",
-      "验证码发送至15000150001",
-      "登录成功进入首页"
-    ]
-  },
-  {
-    "id": "TC005",
-    "name": "用户认证_手机号格式_带空格登录成功",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入手机号150 0015 0002",
-      "点击获取验证码",
-      "输入正确验证码111111",
-      "点击登录按钮"
-    ],
-    "assert": [
-      "系统自动去除空格",
-      "验证码发送至15000150002",
-      "登录成功跳转"
-    ]
-  },
-  {
-    "id": "TC006",
-    "name": "用户认证_验证码正确_成功登录",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入已注册手机号15000150003",
-      "获取验证码",
-      "输入正确6位验证码222222",
-      "点击登录"
-    ],
-    "assert": [
-      "验证码验证通过",
-      "登录成功跳转",
-      "显示登录用户信息"
-    ]
-  },
-  {
-    "id": "TC007",
-    "name": "用户认证_黑名单登录_提示账号异常",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入黑名单手机号15000150004",
-      "获取验证码",
-      "输入正确验证码333333",
-      "点击登录"
-    ],
-    "assert": [
-      "系统提示账号异常",
-      "登录被拒绝",
-      "显示联系客服提示"
-    ]
-  },
-  {
-    "id": "TC008",
-    "name": "用户认证_冻结账号登录_提示账号冻结",
-    "priority": "P0",
-    "steps": [
-      "进入登录页面",
-      "输入冻结状态手机号15000150005",
-      "获取验证码",
-      "输入正确验证码444444",
-      "点击登录"
-    ],
-    "assert": [
-      "系统提示账号已冻结",
-      "禁止登录操作",
-      "显示解冻指引"
-    ]
-  },
-  {
-    "id": "TC009",
-    "name": "用户认证_验证码发送限制_60秒间隔提示",
-    "priority": "P1",
-    "steps": [
-      "进入登录页面",
-      "输入手机号15000150006",
-      "点击获取验证码",
-      "等待5秒后再次点击获取验证码"
-    ],
-    "assert": [
-      "显示倒计时提示",
-      "按钮置灰不可点击",
-      "提示请等待60秒后重试"
-    ]
-  },
-  {
-    "id": "TC010",
-    "name": "用户认证_验证码错误_提示验证码错误",
-    "priority": "P1",
-    "steps": [
-      "进入登录页面",
-      "输入手机号15000150007",
-      "获取验证码",
-      "输入错误验证码999999",
-      "点击登录"
-    ],
-    "assert": [
-      "系统提示验证码错误",
-      "登录失败",
-      "验证码输入框清空"
-    ]
-  },
-  {
-    "id": "TC011",
-    "name": "用户认证_验证码过期_提示验证码过期",
-    "priority": "P1",
-    "steps": [
-      "进入登录页面",
-      "输入手机号15000150008",
-      "获取验证码",
-      "等待6分钟过期",
-      "输入验证码555555",
-      "点击登录"
-    ],
-    "assert": [
-      "系统提示验证码已过期",
-      "登录失败",
-      "提示重新获取验证码"
-    ]
-  },
-  {
-    "id": "TC012",
-    "name": "用户认证_非大陆手机号_提示不支持",
-    "priority": "P1",
-    "steps": [
-      "进入登录页面",
-      "输入香港手机号85291234567",
-      "点击获取验证码"
-    ],
-    "assert": [
-      "系统提示不支持该手机号",
-      "验证码发送失败",
-      "显示仅支持大陆手机号"
-    ]
-  },
-  {
-    "id": "TC013",
-    "name": "用户认证_多端登录_App端正常工作",
-    "priority": "P0",
-    "steps": [
-      "打开App",
-      "进入登录页面",
-      "输入手机号15000150009",
-      "获取验证码",
-      "输入正确验证码666666",
-      "点击登录"
-    ],
-    "assert": [
-      "App登录成功",
-      "跳转主界面",
-      "显示用户信息"
-    ]
-  },
-  {
-    "id": "TC014",
-    "name": "用户认证_多端登录_小程序端正常工作",
-    "priority": "P0",
-    "steps": [
-      "打开微信小程序",
-      "进入登录页面",
-      "输入手机号15000150010",
-      "获取验证码",
-      "输入正确验证码777777",
-      "点击登录"
-    ],
-    "assert": [
-      "小程序登录成功",
-      "获取用户授权",
-      "显示首页内容"
-    ]
-  },
-  {
-    "id": "TC015",
-    "name": "用户认证_多端登录_H5端正常工作",
-    "priority": "P0",
-    "steps": [
-      "访问H5页面",
-      "进入登录页面",
-      "输入手机号15000150011",
-      "获取验证码",
-      "输入正确验证码888888",
-      "点击登录"
-    ],
-    "assert": [
-      "H5登录成功",
-      "页面跳转成功",
-      "保存登录状态"
-    ]
-  },
-  {
-    "id": "TC016",
-    "name": "用户认证_验证码长度_非6位拒绝登录",
-    "priority": "P1",
-    "steps": [
-      "进入登录页面",
-      "输入手机号15000150012",
-      "获取验证码",
-      "输入5位验证码12345",
-      "点击登录"
-    ],
-    "assert": [
-      "系统提示验证码格式错误",
-      "登录被拒绝",
-      "提示验证码必须为6位"
-    ]
-  },
-  {
-    "id": "TC017",
-    "name": "用户认证_发送限制_10次日限额提示",
-    "priority": "P1",
-    "steps": [
-      "进入登录页面",
-      "输入手机号15000150013",
-      "连续点击获取验证码11次",
-      "在第11次点击时"
-    ],
-    "assert": [
-      "系统提示今日发送次数已达上限",
-      "验证码发送失败",
-      "提示明日重试"
-    ]
-  },
-  {
-    "id": "TC018",
-    "name": "用户认证_网络异常_验证码发送失败处理",
-    "priority": "P2",
-    "steps": [
-      "断开网络连接",
-      "进入登录页面",
-      "输入手机号15000150014",
-      "点击获取验证码"
-    ],
-    "assert": [
-      "系统提示网络异常",
-      "验证码发送失败",
-      "显示重试按钮"
-    ]
-  },
-  {
-    "id": "TC019",
-    "name": "用户认证_多设备并发_同一账号登录处理",
-    "priority": "P1",
-    "steps": [
-      "设备A使用手机号15000150015登录",
-      "设备B同时使用相同手机号登录",
-      "设备B获取验证码并登录"
-    ],
-    "assert": [
-      "设备B登录成功",
-      "设备A收到下线通知或被踢下线",
-      "系统只允许一处活跃登录"
-    ]
-  }
-]
-[2026-04-26 21:26:02,820] [INFO] [AITestCraft] testcase success
-[2026-04-26 21:26:02,820] [INFO] [AITestCraft] node finish: testcase
-[2026-04-26 21:26:02,820] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}, 'testpoint': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入11位标准大陆手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP004', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带+86前缀的手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP005', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带空格的手机号系统自动处理并正常获取验证码', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好60秒间隔后重新发送', 'priority': 'P1'}, {'id': 'TP010', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好第10次发送成功', 'priority': 'P1'}, {'id': 'TP011', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码在5分钟有效期内最后秒数登录成功', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'unique_testpoints': {'unique_testpoints': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入手机号格式正确情况下获取验证码（包括11位标准、+86前缀、带空格）', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码发送间隔限制测试（60秒间隔重新发送、10次发送限制、5分钟有效期）', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'duplicates': [{'original': 'TP003', 'duplicates': ['TP004', 'TP005']}, {'original': 'TP009', 'duplicates': ['TP010', 'TP011']}]}, 'testcase': [{'id': 'TC001', 'name': '用户认证_新用户有效手机号登录_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号13800138000', '点击获取验证码按钮', '收到SMS验证码并输入6位数字验证码', '点击登录按钮'], 'assert': ['页面跳转至首页', '显示用户昵称或头像', '系统生成新的用户ID', '登录状态保持']}, {'id': 'TC002', 'name': '用户认证_新用户登录_自动注册账号', 'priority': 'P0', 'steps': ['进入登录页面', '输入新手机号13900139000', '点击获取验证码按钮', '输入收到的6位验证码', '点击登录按钮'], 'assert': ['系统自动创建新账号', '用户信息包含手机号13900139000', '返回新建用户ID', '页面显示注册成功提示']}, {'id': 'TC003', 'name': '用户认证_手机号格式_11位标准号登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入11位标准手机号15000150000', '点击获取验证码', '输入正确验证码123456', '点击登录按钮'], 'assert': ['验证码发送成功', '登录成功跳转首页', '显示正确用户信息']}, {'id': 'TC004', 'name': '用户认证_手机号格式_带+86前缀登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号+8615100150001', '点击获取验证码', '输入正确验证码654321', '点击登录按钮'], 'assert': ['系统识别+86前缀', '验证码发送至15000150001', '登录成功进入首页']}, {'id': 'TC005', 'name': '用户认证_手机号格式_带空格登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号150 0015 0002', '点击获取验证码', '输入正确验证码111111', '点击登录按钮'], 'assert': ['系统自动去除空格', '验证码发送至15000150002', '登录成功跳转']}, {'id': 'TC006', 'name': '用户认证_验证码正确_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入已注册手机号15000150003', '获取验证码', '输入正确6位验证码222222', '点击登录'], 'assert': ['验证码验证通过', '登录成功跳转', '显示登录用户信息']}, {'id': 'TC007', 'name': '用户认证_黑名单登录_提示账号异常', 'priority': 'P0', 'steps': ['进入登录页面', '输入黑名单手机号15000150004', '获取验证码', '输入正确验证码333333', '点击登录'], 'assert': ['系统提示账号异常', '登录被拒绝', '显示联系客服提示']}, {'id': 'TC008', 'name': '用户认证_冻结账号登录_提示账号冻结', 'priority': 'P0', 'steps': ['进入登录页面', '输入冻结状态手机号15000150005', '获取验证码', '输入正确验证码444444', '点击登录'], 'assert': ['系统提示账号已冻结', '禁止登录操作', '显示解冻指引']}, {'id': 'TC009', 'name': '用户认证_验证码发送限制_60秒间隔提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150006', '点击获取验证码', '等待5秒后再次点击获取验证码'], 'assert': ['显示倒计时提示', '按钮置灰不可点击', '提示请等待60秒后重试']}, {'id': 'TC010', 'name': '用户认证_验证码错误_提示验证码错误', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150007', '获取验证码', '输入错误验证码999999', '点击登录'], 'assert': ['系统提示验证码错误', '登录失败', '验证码输入框清空']}, {'id': 'TC011', 'name': '用户认证_验证码过期_提示验证码过期', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150008', '获取验证码', '等待6分钟过期', '输入验证码555555', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC012', 'name': '用户认证_非大陆手机号_提示不支持', 'priority': 'P1', 'steps': ['进入登录页面', '输入香港手机号85291234567', '点击获取验证码'], 'assert': ['系统提示不支持该手机号', '验证码发送失败', '显示仅支持大陆手机号']}, {'id': 'TC013', 'name': '用户认证_多端登录_App端正常工作', 'priority': 'P0', 'steps': ['打开App', '进入登录页面', '输入手机号15000150009', '获取验证码', '输入正确验证码666666', '点击登录'], 'assert': ['App登录成功', '跳转主界面', '显示用户信息']}, {'id': 'TC014', 'name': '用户认证_多端登录_小程序端正常工作', 'priority': 'P0', 'steps': ['打开微信小程序', '进入登录页面', '输入手机号15000150010', '获取验证码', '输入正确验证码777777', '点击登录'], 'assert': ['小程序登录成功', '获取用户授权', '显示首页内容']}, {'id': 'TC015', 'name': '用户认证_多端登录_H5端正常工作', 'priority': 'P0', 'steps': ['访问H5页面', '进入登录页面', '输入手机号15000150011', '获取验证码', '输入正确验证码888888', '点击登录'], 'assert': ['H5登录成功', '页面跳转成功', '保存登录状态']}, {'id': 'TC016', 'name': '用户认证_验证码长度_非6位拒绝登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150012', '获取验证码', '输入5位验证码12345', '点击登录'], 'assert': ['系统提示验证码格式错误', '登录被拒绝', '提示验证码必须为6位']}, {'id': 'TC017', 'name': '用户认证_发送限制_10次日限额提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150013', '连续点击获取验证码11次', '在第11次点击时'], 'assert': ['系统提示今日发送次数已达上限', '验证码发送失败', '提示明日重试']}, {'id': 'TC018', 'name': '用户认证_网络异常_验证码发送失败处理', 'priority': 'P2', 'steps': ['断开网络连接', '进入登录页面', '输入手机号15000150014', '点击获取验证码'], 'assert': ['系统提示网络异常', '验证码发送失败', '显示重试按钮']}, {'id': 'TC019', 'name': '用户认证_多设备并发_同一账号登录处理', 'priority': 'P1', 'steps': ['设备A使用手机号15000150015登录', '设备B同时使用相同手机号登录', '设备B获取验证码并登录'], 'assert': ['设备B登录成功', '设备A收到下线通知或被踢下线', '系统只允许一处活跃登录']}]}
-[2026-04-26 21:26:02,821] [INFO] [AITestCraft] node start: review
-[2026-04-26 21:26:02,821] [INFO] [AITestCraft] False
-[2026-04-26 21:26:02,822] [INFO] [AITestCraft] review attempt 1
-[2026-04-26 21:26:20,874] [INFO] [AITestCraft] 
-{
-  "score": 75,
-  "issues": ["缺少验证码为空的边界测试", "缺少手机号为空的异常处理", "缺少验证码发送次数重置机制测试", "缺少验证码有效期边界测试（刚好5分钟），"缺少冻结/黑名单状态的前置条件说明"],
-  "duplicates": ["TC001与TC002功能重复，都是新用户登录测试"],
-  "invalid": ["TC019步骤缺少时间间隔说明和并发测试的具体操作细节"],
-  "suggestions": ["增加验证码为空的测试用例", "增加手机号为空的测试用例", "增加验证码刚好5分钟过期时测试", "明确冻结/黑名单账号的预置条件", "优化TC019并发测试步骤，明确时间间隔和具体操作", "考虑增加验证码发送成功但短信未送达的场景测试"]
-}
-[2026-04-26 21:26:20,875] [INFO] [AITestCraft] Expecting ',' delimiter: line 3 column 87 (char 103)
-[2026-04-26 21:26:20,875] [WARNING] [AITestCraft] JSON解析失败
-[2026-04-26 21:26:20,875] [WARNING] [AITestCraft] JSON解析失败, 原始内容: 
-{
-  "score": 75,
-  "issues": ["缺少验证码为空的边界测试", "缺少手机号为空的异常处理", "缺少验证码发送次数重置机制测试", "缺少验证码有效期边界测试（刚好5分钟），"缺少冻结/黑名单状态的前置条件说明"],
-  "duplicates": ["TC001与TC002功能重复，都是新用户登录测试"],
-  "invalid": ["TC019步骤缺少时间间隔说明和并发测试的具体操作细节"],
-  "suggestions": ["增加验证码为空的测试用例", "增加手机号为空的测试用例", "增加验证码刚好5分钟过期时测试", "明确冻结/黑名单账号的预置条件", "优化TC019并发测试步骤，明确时间间隔和具体操作", "考虑增加验证码发送成功但短信未送达的场景测试"]
-}
-[2026-04-26 21:26:20,875] [INFO] [AITestCraft] review attempt 2
-[2026-04-26 21:26:55,201] [INFO] [AITestCraft] 
-{
-  "score": 85,
-  "issues": [
-    "测试点TP021（多设备并发登录）仅有测试点，缺少对应测试用例",
-    "验证码有效期测试不够完整，缺少边界时间点的测试",
-    "手机号格式测试缺少边界情况，如：非数字字符、超长/过短格式",
-    "缺少验证码多次错误输入的锁定机制测试",
-    "60秒发送间隔测试用例中等待时间过短（5秒），应测试完整的间隔限制"
-  ],
-  "duplicates": [
-    "TC001与TC002都测试新用户注册登录，存在功能重叠",
-    "TC008（冻结账号）与TC007（黑名单）测试逻辑相似，可能存在场景重复"
-  ],
-  "invalid": [
-    "TC017步骤描述不准确，60秒间隔限制下无法连续点击11次",
-    "TC009步骤等待5秒后重试，但60秒间隔应测试完整的倒计时逻辑"
-  ],
-  "suggestions": [
-    "补充多设备并发登录场景的详细测试用例",
-    "增加验证码边界时间测试（4分59秒、5分01秒）",
-    "补充验证码错误次数限制的测试用例",
-    "优化发送间隔测试用例，测试完整的时间窗口",
-    "增加手机号边界格式测试（特殊字符、长度异常）"
-  ]
-}
-[2026-04-26 21:26:55,213] [INFO] [AITestCraft] review success
-[2026-04-26 21:26:55,214] [INFO] [AITestCraft] node finish: review
-[2026-04-26 21:26:55,214] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}, 'testpoint': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入11位标准大陆手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP004', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带+86前缀的手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP005', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带空格的手机号系统自动处理并正常获取验证码', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好60秒间隔后重新发送', 'priority': 'P1'}, {'id': 'TP010', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好第10次发送成功', 'priority': 'P1'}, {'id': 'TP011', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码在5分钟有效期内最后秒数登录成功', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'unique_testpoints': {'unique_testpoints': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入手机号格式正确情况下获取验证码（包括11位标准、+86前缀、带空格）', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码发送间隔限制测试（60秒间隔重新发送、10次发送限制、5分钟有效期）', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'duplicates': [{'original': 'TP003', 'duplicates': ['TP004', 'TP005']}, {'original': 'TP009', 'duplicates': ['TP010', 'TP011']}]}, 'testcase': [{'id': 'TC001', 'name': '用户认证_新用户有效手机号登录_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号13800138000', '点击获取验证码按钮', '收到SMS验证码并输入6位数字验证码', '点击登录按钮'], 'assert': ['页面跳转至首页', '显示用户昵称或头像', '系统生成新的用户ID', '登录状态保持']}, {'id': 'TC002', 'name': '用户认证_新用户登录_自动注册账号', 'priority': 'P0', 'steps': ['进入登录页面', '输入新手机号13900139000', '点击获取验证码按钮', '输入收到的6位验证码', '点击登录按钮'], 'assert': ['系统自动创建新账号', '用户信息包含手机号13900139000', '返回新建用户ID', '页面显示注册成功提示']}, {'id': 'TC003', 'name': '用户认证_手机号格式_11位标准号登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入11位标准手机号15000150000', '点击获取验证码', '输入正确验证码123456', '点击登录按钮'], 'assert': ['验证码发送成功', '登录成功跳转首页', '显示正确用户信息']}, {'id': 'TC004', 'name': '用户认证_手机号格式_带+86前缀登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号+8615100150001', '点击获取验证码', '输入正确验证码654321', '点击登录按钮'], 'assert': ['系统识别+86前缀', '验证码发送至15000150001', '登录成功进入首页']}, {'id': 'TC005', 'name': '用户认证_手机号格式_带空格登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号150 0015 0002', '点击获取验证码', '输入正确验证码111111', '点击登录按钮'], 'assert': ['系统自动去除空格', '验证码发送至15000150002', '登录成功跳转']}, {'id': 'TC006', 'name': '用户认证_验证码正确_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入已注册手机号15000150003', '获取验证码', '输入正确6位验证码222222', '点击登录'], 'assert': ['验证码验证通过', '登录成功跳转', '显示登录用户信息']}, {'id': 'TC007', 'name': '用户认证_黑名单登录_提示账号异常', 'priority': 'P0', 'steps': ['进入登录页面', '输入黑名单手机号15000150004', '获取验证码', '输入正确验证码333333', '点击登录'], 'assert': ['系统提示账号异常', '登录被拒绝', '显示联系客服提示']}, {'id': 'TC008', 'name': '用户认证_冻结账号登录_提示账号冻结', 'priority': 'P0', 'steps': ['进入登录页面', '输入冻结状态手机号15000150005', '获取验证码', '输入正确验证码444444', '点击登录'], 'assert': ['系统提示账号已冻结', '禁止登录操作', '显示解冻指引']}, {'id': 'TC009', 'name': '用户认证_验证码发送限制_60秒间隔提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150006', '点击获取验证码', '等待5秒后再次点击获取验证码'], 'assert': ['显示倒计时提示', '按钮置灰不可点击', '提示请等待60秒后重试']}, {'id': 'TC010', 'name': '用户认证_验证码错误_提示验证码错误', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150007', '获取验证码', '输入错误验证码999999', '点击登录'], 'assert': ['系统提示验证码错误', '登录失败', '验证码输入框清空']}, {'id': 'TC011', 'name': '用户认证_验证码过期_提示验证码过期', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150008', '获取验证码', '等待6分钟过期', '输入验证码555555', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC012', 'name': '用户认证_非大陆手机号_提示不支持', 'priority': 'P1', 'steps': ['进入登录页面', '输入香港手机号85291234567', '点击获取验证码'], 'assert': ['系统提示不支持该手机号', '验证码发送失败', '显示仅支持大陆手机号']}, {'id': 'TC013', 'name': '用户认证_多端登录_App端正常工作', 'priority': 'P0', 'steps': ['打开App', '进入登录页面', '输入手机号15000150009', '获取验证码', '输入正确验证码666666', '点击登录'], 'assert': ['App登录成功', '跳转主界面', '显示用户信息']}, {'id': 'TC014', 'name': '用户认证_多端登录_小程序端正常工作', 'priority': 'P0', 'steps': ['打开微信小程序', '进入登录页面', '输入手机号15000150010', '获取验证码', '输入正确验证码777777', '点击登录'], 'assert': ['小程序登录成功', '获取用户授权', '显示首页内容']}, {'id': 'TC015', 'name': '用户认证_多端登录_H5端正常工作', 'priority': 'P0', 'steps': ['访问H5页面', '进入登录页面', '输入手机号15000150011', '获取验证码', '输入正确验证码888888', '点击登录'], 'assert': ['H5登录成功', '页面跳转成功', '保存登录状态']}, {'id': 'TC016', 'name': '用户认证_验证码长度_非6位拒绝登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150012', '获取验证码', '输入5位验证码12345', '点击登录'], 'assert': ['系统提示验证码格式错误', '登录被拒绝', '提示验证码必须为6位']}, {'id': 'TC017', 'name': '用户认证_发送限制_10次日限额提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150013', '连续点击获取验证码11次', '在第11次点击时'], 'assert': ['系统提示今日发送次数已达上限', '验证码发送失败', '提示明日重试']}, {'id': 'TC018', 'name': '用户认证_网络异常_验证码发送失败处理', 'priority': 'P2', 'steps': ['断开网络连接', '进入登录页面', '输入手机号15000150014', '点击获取验证码'], 'assert': ['系统提示网络异常', '验证码发送失败', '显示重试按钮']}, {'id': 'TC019', 'name': '用户认证_多设备并发_同一账号登录处理', 'priority': 'P1', 'steps': ['设备A使用手机号15000150015登录', '设备B同时使用相同手机号登录', '设备B获取验证码并登录'], 'assert': ['设备B登录成功', '设备A收到下线通知或被踢下线', '系统只允许一处活跃登录']}], 'review': {'score': 85, 'issues': ['测试点TP021（多设备并发登录）仅有测试点，缺少对应测试用例', '验证码有效期测试不够完整，缺少边界时间点的测试', '手机号格式测试缺少边界情况，如：非数字字符、超长/过短格式', '缺少验证码多次错误输入的锁定机制测试', '60秒发送间隔测试用例中等待时间过短（5秒），应测试完整的间隔限制'], 'duplicates': ['TC001与TC002都测试新用户注册登录，存在功能重叠', 'TC008（冻结账号）与TC007（黑名单）测试逻辑相似，可能存在场景重复'], 'invalid': ['TC017步骤描述不准确，60秒间隔限制下无法连续点击11次', 'TC009步骤等待5秒后重试，但60秒间隔应测试完整的倒计时逻辑'], 'suggestions': ['补充多设备并发登录场景的详细测试用例', '增加验证码边界时间测试（4分59秒、5分01秒）', '补充验证码错误次数限制的测试用例', '优化发送间隔测试用例，测试完整的时间窗口', '增加手机号边界格式测试（特殊字符、长度异常）']}}
-[2026-04-26 21:26:55,215] [INFO] [AITestCraft] node start: coverage
-[2026-04-26 21:26:55,215] [INFO] [AITestCraft] False
-[2026-04-26 21:26:55,215] [INFO] [AITestCraft] coverage attempt 1
-[2026-04-26 21:27:03,402] [INFO] [AITestCraft] 
-{
-  "coverage_rate": 90,
-  "missing": ["黑名单/冻结账号的解除状态测试", "验证码重发间隔精确到秒的边界测试"],
-  "risk_level": "low"
-}
-[2026-04-26 21:27:03,409] [INFO] [AITestCraft] coverage success
-[2026-04-26 21:27:03,409] [INFO] [AITestCraft] node finish: coverage
-[2026-04-26 21:27:03,410] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}, 'testpoint': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入11位标准大陆手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP004', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带+86前缀的手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP005', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带空格的手机号系统自动处理并正常获取验证码', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好60秒间隔后重新发送', 'priority': 'P1'}, {'id': 'TP010', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好第10次发送成功', 'priority': 'P1'}, {'id': 'TP011', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码在5分钟有效期内最后秒数登录成功', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'unique_testpoints': {'unique_testpoints': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入手机号格式正确情况下获取验证码（包括11位标准、+86前缀、带空格）', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码发送间隔限制测试（60秒间隔重新发送、10次发送限制、5分钟有效期）', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'duplicates': [{'original': 'TP003', 'duplicates': ['TP004', 'TP005']}, {'original': 'TP009', 'duplicates': ['TP010', 'TP011']}]}, 'testcase': [{'id': 'TC001', 'name': '用户认证_新用户有效手机号登录_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号13800138000', '点击获取验证码按钮', '收到SMS验证码并输入6位数字验证码', '点击登录按钮'], 'assert': ['页面跳转至首页', '显示用户昵称或头像', '系统生成新的用户ID', '登录状态保持']}, {'id': 'TC002', 'name': '用户认证_新用户登录_自动注册账号', 'priority': 'P0', 'steps': ['进入登录页面', '输入新手机号13900139000', '点击获取验证码按钮', '输入收到的6位验证码', '点击登录按钮'], 'assert': ['系统自动创建新账号', '用户信息包含手机号13900139000', '返回新建用户ID', '页面显示注册成功提示']}, {'id': 'TC003', 'name': '用户认证_手机号格式_11位标准号登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入11位标准手机号15000150000', '点击获取验证码', '输入正确验证码123456', '点击登录按钮'], 'assert': ['验证码发送成功', '登录成功跳转首页', '显示正确用户信息']}, {'id': 'TC004', 'name': '用户认证_手机号格式_带+86前缀登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号+8615100150001', '点击获取验证码', '输入正确验证码654321', '点击登录按钮'], 'assert': ['系统识别+86前缀', '验证码发送至15000150001', '登录成功进入首页']}, {'id': 'TC005', 'name': '用户认证_手机号格式_带空格登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号150 0015 0002', '点击获取验证码', '输入正确验证码111111', '点击登录按钮'], 'assert': ['系统自动去除空格', '验证码发送至15000150002', '登录成功跳转']}, {'id': 'TC006', 'name': '用户认证_验证码正确_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入已注册手机号15000150003', '获取验证码', '输入正确6位验证码222222', '点击登录'], 'assert': ['验证码验证通过', '登录成功跳转', '显示登录用户信息']}, {'id': 'TC007', 'name': '用户认证_黑名单登录_提示账号异常', 'priority': 'P0', 'steps': ['进入登录页面', '输入黑名单手机号15000150004', '获取验证码', '输入正确验证码333333', '点击登录'], 'assert': ['系统提示账号异常', '登录被拒绝', '显示联系客服提示']}, {'id': 'TC008', 'name': '用户认证_冻结账号登录_提示账号冻结', 'priority': 'P0', 'steps': ['进入登录页面', '输入冻结状态手机号15000150005', '获取验证码', '输入正确验证码444444', '点击登录'], 'assert': ['系统提示账号已冻结', '禁止登录操作', '显示解冻指引']}, {'id': 'TC009', 'name': '用户认证_验证码发送限制_60秒间隔提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150006', '点击获取验证码', '等待5秒后再次点击获取验证码'], 'assert': ['显示倒计时提示', '按钮置灰不可点击', '提示请等待60秒后重试']}, {'id': 'TC010', 'name': '用户认证_验证码错误_提示验证码错误', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150007', '获取验证码', '输入错误验证码999999', '点击登录'], 'assert': ['系统提示验证码错误', '登录失败', '验证码输入框清空']}, {'id': 'TC011', 'name': '用户认证_验证码过期_提示验证码过期', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150008', '获取验证码', '等待6分钟过期', '输入验证码555555', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC012', 'name': '用户认证_非大陆手机号_提示不支持', 'priority': 'P1', 'steps': ['进入登录页面', '输入香港手机号85291234567', '点击获取验证码'], 'assert': ['系统提示不支持该手机号', '验证码发送失败', '显示仅支持大陆手机号']}, {'id': 'TC013', 'name': '用户认证_多端登录_App端正常工作', 'priority': 'P0', 'steps': ['打开App', '进入登录页面', '输入手机号15000150009', '获取验证码', '输入正确验证码666666', '点击登录'], 'assert': ['App登录成功', '跳转主界面', '显示用户信息']}, {'id': 'TC014', 'name': '用户认证_多端登录_小程序端正常工作', 'priority': 'P0', 'steps': ['打开微信小程序', '进入登录页面', '输入手机号15000150010', '获取验证码', '输入正确验证码777777', '点击登录'], 'assert': ['小程序登录成功', '获取用户授权', '显示首页内容']}, {'id': 'TC015', 'name': '用户认证_多端登录_H5端正常工作', 'priority': 'P0', 'steps': ['访问H5页面', '进入登录页面', '输入手机号15000150011', '获取验证码', '输入正确验证码888888', '点击登录'], 'assert': ['H5登录成功', '页面跳转成功', '保存登录状态']}, {'id': 'TC016', 'name': '用户认证_验证码长度_非6位拒绝登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150012', '获取验证码', '输入5位验证码12345', '点击登录'], 'assert': ['系统提示验证码格式错误', '登录被拒绝', '提示验证码必须为6位']}, {'id': 'TC017', 'name': '用户认证_发送限制_10次日限额提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150013', '连续点击获取验证码11次', '在第11次点击时'], 'assert': ['系统提示今日发送次数已达上限', '验证码发送失败', '提示明日重试']}, {'id': 'TC018', 'name': '用户认证_网络异常_验证码发送失败处理', 'priority': 'P2', 'steps': ['断开网络连接', '进入登录页面', '输入手机号15000150014', '点击获取验证码'], 'assert': ['系统提示网络异常', '验证码发送失败', '显示重试按钮']}, {'id': 'TC019', 'name': '用户认证_多设备并发_同一账号登录处理', 'priority': 'P1', 'steps': ['设备A使用手机号15000150015登录', '设备B同时使用相同手机号登录', '设备B获取验证码并登录'], 'assert': ['设备B登录成功', '设备A收到下线通知或被踢下线', '系统只允许一处活跃登录']}], 'review': {'score': 85, 'issues': ['测试点TP021（多设备并发登录）仅有测试点，缺少对应测试用例', '验证码有效期测试不够完整，缺少边界时间点的测试', '手机号格式测试缺少边界情况，如：非数字字符、超长/过短格式', '缺少验证码多次错误输入的锁定机制测试', '60秒发送间隔测试用例中等待时间过短（5秒），应测试完整的间隔限制'], 'duplicates': ['TC001与TC002都测试新用户注册登录，存在功能重叠', 'TC008（冻结账号）与TC007（黑名单）测试逻辑相似，可能存在场景重复'], 'invalid': ['TC017步骤描述不准确，60秒间隔限制下无法连续点击11次', 'TC009步骤等待5秒后重试，但60秒间隔应测试完整的倒计时逻辑'], 'suggestions': ['补充多设备并发登录场景的详细测试用例', '增加验证码边界时间测试（4分59秒、5分01秒）', '补充验证码错误次数限制的测试用例', '优化发送间隔测试用例，测试完整的时间窗口', '增加手机号边界格式测试（特殊字符、长度异常）']}, 'coverage': {'coverage_rate': 90, 'missing': ['黑名单/冻结账号的解除状态测试', '验证码重发间隔精确到秒的边界测试'], 'risk_level': 'low'}}
-[2026-04-26 21:27:03,411] [INFO] [AITestCraft] node start: gap
-[2026-04-26 21:27:03,411] [INFO] [AITestCraft] False
-[2026-04-26 21:27:03,411] [INFO] [AITestCraft] gap attempt 1
-[2026-04-26 21:40:50,715] [INFO] [AITestCraft] 
-[{"id": "TC001", "name": "用户认证_新用户有效手机号登录_成功登录", "priority": "P0", "steps": ["进入登录页面", "输入手机号13800138000", "点击获取验证码按钮", "收到SMS验证码并输入6位数字验证码", "点击登录按钮"], "assert": ["页面跳转至首页", "显示用户昵称或头像", "系统生成新的用户ID", "登录状态保持"]}, {"id": "TC002", "name": "用户认证_新用户登录_自动注册账号", "priority": "P0", "steps": ["进入登录页面", "输入新手机号13900139000", "点击获取验证码按钮", "输入收到的6位验证码", "点击登录按钮"], "assert": ["系统自动创建新账号", "用户信息包含手机号13900139000", "返回新建用户ID", "页面显示注册成功提示"]}, {"id": "TC003", "name": "用户认证_手机号格式_11位标准号登录成功", "priority": "P0", "steps": ["进入登录页面", "输入11位标准手机号15000150000", "点击获取验证码", "输入正确验证码123456", "点击登录按钮"], "assert": ["验证码发送成功", "登录成功跳转首页", "显示正确用户信息"]}, {"id": "TC004", "name": "用户认证_手机号格式_带+86前缀登录成功", "priority": "P0", "steps": ["进入登录页面", "输入手机号+861500150001", "点击获取验证码", "输入正确验证码654321", "点击登录按钮"], "assert": ["系统识别+86前缀", "验证码发送至15000150001", "登录成功进入首页"]}, {"id": "TC005", "name": "用户认证_手机号格式_带空格登录成功", "priority": "P0", "steps": ["进入登录页面", "输入手机号150 0015 0002", "点击获取验证码", "输入正确验证码111111", "点击登录按钮"], "assert": ["系统自动去除空格", "验证码发送至15000150002", "登录成功跳转"]}, {"id": "TC006", "name": "用户认证_验证码正确_成功登录", "priority": "P0", "steps": ["进入登录页面", "输入已注册手机号15000150003", "获取验证码", "输入正确6位验证码222222", "点击登录"], "assert": ["验证码验证通过", "登录成功跳转", "显示登录用户信息"]}, {"id": "TC007", "name": "用户认证_黑名单登录_提示账号异常", "priority": "P0", "steps": ["进入登录页面", "输入黑名单手机号15000150004", "获取验证码", "输入正确验证码333333", "点击登录"], "assert": ["系统提示账号异常", "登录被拒绝", "显示联系客服提示"]}, {"id": "TC008", "name": "用户认证_冻结账号登录_提示账号冻结", "priority": "P0", "steps": ["进入登录页面", "输入冻结状态手机号15000150005", "获取验证码", "输入正确验证码444444", "点击登录"], "assert": ["系统提示账号已冻结", "禁止登录操作", "显示解冻指引"]}, {"id": "TC009", "name": "用户认证_验证码发送限制_60秒间隔提示", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150006", "点击获取验证码", "等待5秒后再次点击获取验证码"], "assert": ["显示倒计时提示", "按钮置灰不可点击", "提示请等待60秒后重试"]}, {"id": "TC010", "name": "用户认证_验证码错误_提示验证码错误", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150007", "获取验证码", "输入错误验证码999999", "点击登录"], "assert": ["系统提示验证码错误", "登录失败", "验证码输入框清空"]}, {"id": "TC011", "name": "用户认证_验证码过期_提示验证码过期", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150008", "获取验证码", "等待6分钟过期", "输入验证码555555", "点击登录"], "assert": ["系统提示验证码已过期", "登录失败", "提示重新获取验证码"]}, {"id": "TC012", "name": "用户认证_非大陆手机号_提示不支持", "priority": "P1", "steps": ["进入登录页面", "输入香港手机号85291234567", "点击获取验证码"], "assert": ["系统提示不支持该手机号", "验证码发送失败", "显示仅支持大陆手机号"]}, {"id": "TC013", "name": "用户认证_多端登录_App端正常工作", "priority": "P0", "steps": ["打开App", "进入登录页面", "输入手机号15000150009", "获取验证码", "输入正确验证码666666", "点击登录"], "assert": ["App登录成功", "跳转主界面", "显示用户信息"]}, {"id": "TC014", "name": "用户认证_多端登录_小程序端正常工作", "priority": "P0", "steps": ["打开微信小程序", "进入登录页面", "输入手机号15000150010", "获取验证码", "输入正确验证码777777", "点击登录"], "assert": ["小程序登录成功", "获取用户授权", "显示首页内容"]}, {"id": "TC015", "name": "用户认证_多端登录_H5端正常工作", "priority": "P0", "steps": ["访问H5页面", "进入登录页面", "输入手机号15000150011", "获取验证码", "输入正确验证码888888", "点击登录"], "assert": ["H5登录成功", "页面跳转成功", "保存登录状态"]}, {"id": "TC016", "name": "用户认证_验证码长度_非6位拒绝登录", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150012", "获取验证码", "输入5位验证码12345", "点击登录"], "assert": ["系统提示验证码格式错误", "登录被拒绝", "提示验证码必须为6位"]}, {"id": "TC017", "name": "用户认证_发送限制_10次日限额提示", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150013", "连续点击获取验证码11次", "在第11次点击时"], "assert": ["系统提示今日发送次数已达上限", "验证码发送失败", "提示明日重试"]}, {"id": "TC018", "name": "用户认证_网络异常_验证码发送失败处理", "priority": "P2", "steps": ["断开网络连接", "进入登录页面", "输入手机号15000150014", "点击获取验证码"], "assert": ["系统提示网络异常", "验证码发送失败", "显示重试按钮"]}, {"id": "TC019", "name": "用户认证_多设备并发_同一账号登录处理", "priority": "P1", "steps": ["设备A使用手机号15000150015登录", "设备B同时使用相同手机号登录", "设备B获取验证码并登录"], "assert": ["设备B登录成功", "设备A收到下线通知或被踢下线", "系统只允许一处活跃登录"]}, {"id": "TC020", "name": "用户认证_手机号格式_非数字字符拒绝", "priority": "P1", "steps": ["进入登录页面", "输入包含字母的手机号1380013800a", "点击获取验证码"], "assert": ["系统提示手机号格式错误", "验证码发送失败", "提示请输入正确手机号"]}, {"id": "TC021", "name": "用户认证_手机号格式_过短格式拒绝", "priority": "P1", "steps": ["进入登录页面", "输入10位手机号1380013800", "点击获取验证码"], "assert": ["系统提示手机号格式错误", "验证码发送失败", "提示手机号必须为11位"]}, {"id": "TC022", "name": "用户认证_手机号格式_过长格式拒绝", "priority": "P1", "steps": ["进入登录页面", "输入12位手机号138001380001", "点击获取验证码"], "assert": ["系统提示手机号格式错误", "验证码发送失败", "提示手机号必须为11位"]}, {"id": "TC023", "name": "用户认证_验证码有效期_5分59秒边界测试", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150016", "获取验证码", "等待5分59秒", "输入验证码", "点击登录"], "assert": ["验证码验证通过", "登录成功", "跳转至首页"]}, {"id": "TC024", "name": "用户认证_验证码有效期_6分01秒过期边界", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150017", "获取验证码", "等待6分01秒", "输入验证码", "点击登录"], "assert": ["系统提示验证码已过期", "登录失败", "提示重新获取验证码"]}, {"id": "TC025", "name": "用户认证_验证码错误锁定_连续3次错误锁定", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150018", "获取验证码", "输入错误验证码111111", "输入错误验证码222222", "输入错误验证码333333"], "assert": ["系统提示连续3次错误", "账号被临时锁定", "提示15分钟后重试或联系客服"]}, {"id": "TC026", "name": "用户认证_发送间隔_59秒仍可重发", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150019", "点击获取验证码", "等待59秒", "再次点击获取验证码"], "assert": ["验证码重新发送成功", "显示新验证码", "不显示限制提示"]}, {"id": "TC027", "name": "用户认证_发送间隔_61秒限制解除", "priority": "P1", "steps": ["进入登录页面", "输入手机号15000150020", "点击获取验证码", "等待61秒", "再次点击获取验证码"], "assert": ["倒计时结束", "按钮恢复正常状态", "验证码发送成功"]}, {"id": "TC028", "name": "用户认证_黑名单状态解除_解封后正常登录", "priority": "P1", "steps": ["进入登录页面", "输入已解封手机号15000150021", "获取验证码", "输入正确验证码", "点击登录"], "assert": ["验证码发送成功", "登录通过验证", "跳转至首页"]}, {"id": "TC029", "name": "用户认证_冻结状态解除_解冻后正常登录", "priority": "P1", "steps": ["进入登录页面", "输入已解冻手机号15000150022", "获取验证码", "输入正确验证码", "点击登录"], "assert": ["验证码发送成功", "登录验证通过", "跳转至首页"]}, {"id": "TC030", "name": "用户认证_验证码重发间隔_精确到秒边界", "priority": "P2", "steps": ["进入登录页面", "输入手机号15000150023", "获取验证码", "等待30秒", "再次获取验证码", "记录发送间隔时间"], "assert": ["间隔时间精确到秒", "按倒计时规则执行", "发送间隔符合业务规则"]}, {"id": "TC031", "name": "用户认证_多端登录状态保持_设备切换验证", "priority": "P1", "steps": ["设备A登录手机号15000150024", "设备B重新登录相同账号", "登录成功后切换回设备A", "设备A尝试操作"], "assert": ["设备A需要重新登录", "设备B保持登录状态", "系统正确管理会话状态"]}]
-[2026-04-26 21:40:50,732] [INFO] [AITestCraft] gap success
-[2026-04-26 21:40:50,732] [INFO] [AITestCraft] node finish: gap
-[2026-04-26 21:40:50,732] [INFO] [AITestCraft] {'task': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'token_stats': <core.context.TokenStats object at 0x10618e4d0>, 'task_id': '- 登录方式：手机号 + 短信验证码。\n    - 验证码：6位数字；有效期5分钟；同手机号发送间隔≥60s；日上限10次（示例）。\n    - 手机号：大陆11位），支持带/不带空格与`+86`。\n    - 账号态：新用户自动注册/引导注册；黑名单/冻结不可登录，服务端控制黑名单列表。\n    - 多端：App/小程序/H5支持。新用户自动注册并登录。只支持手机号验证码登录，\n    - 手机号规则只包含国内，验证码错误会提示验证码错误，有效期五分钟从生成时间算\n    - 60s间隔和每日10次限额是固定的', 'isapi': False, 'requirement': {'module': '用户认证', 'feature': '手机号验证码登录', 'actors': ['新用户', '老用户', '黑名单用户', '冻结用户'], 'inputs': ['手机号（11位大陆号码）', '6位数字验证码', '带+86的手机号', '带空格的手机号'], 'actions': ['输入手机号', '获取短信验证码', '输入验证码', '点击登录', '自动注册', '多端登录'], 'outputs': ['登录成功', '验证码错误提示', '验证码过期提示', '发送间隔提示', '日限额提示', '黑名单冻结提示', '注册成功'], 'rules': ['验证码6位数字', '验证码有效期5分钟', '同手机号发送间隔≥60秒', '每日上限10次', '新用户自动注册', '只支持大陆手机号', '多端支持App/小程序/H5', '服务端控制黑名单'], 'edge_cases': ['手机号带空格格式', '手机号带+86前缀', '验证码刚过期', '正好60秒间隔重发', '正好第10次发送', '多设备同时登录'], 'exceptions': ['验证码错误', '验证码过期', '手机号在黑名单', '账号被冻结', '超出日发送限额', '60秒内重复发送', '非大陆手机号', '网络异常']}, 'testpoint': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入11位标准大陆手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP004', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带+86前缀的手机号正常获取验证码', 'priority': 'P0'}, {'id': 'TP005', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入带空格的手机号系统自动处理并正常获取验证码', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好60秒间隔后重新发送', 'priority': 'P1'}, {'id': 'TP010', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码刚好第10次发送成功', 'priority': 'P1'}, {'id': 'TP011', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码在5分钟有效期内最后秒数登录成功', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'unique_testpoints': {'unique_testpoints': [{'id': 'TP001', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP002', 'module': '用户认证', 'type': 'functional', 'test_point': '老用户输入有效手机号获取验证码并成功登录', 'priority': 'P0'}, {'id': 'TP003', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入手机号格式正确情况下获取验证码（包括11位标准、+86前缀、带空格）', 'priority': 'P0'}, {'id': 'TP006', 'module': '用户认证', 'type': 'functional', 'test_point': '用户输入正确的6位数字验证码成功登录', 'priority': 'P0'}, {'id': 'TP007', 'module': '用户认证', 'type': 'functional', 'test_point': '新用户登录成功后系统自动注册账号', 'priority': 'P0'}, {'id': 'TP008', 'module': '用户认证', 'type': 'functional', 'test_point': '多端登录功能正常工作（App/小程序/H5）', 'priority': 'P0'}, {'id': 'TP009', 'module': '用户认证', 'type': 'boundary', 'test_point': '验证码发送间隔限制测试（60秒间隔重新发送、10次发送限制、5分钟有效期）', 'priority': 'P1'}, {'id': 'TP012', 'module': '用户认证', 'type': 'exception', 'test_point': '用户输入错误验证码系统提示验证码错误', 'priority': 'P1'}, {'id': 'TP013', 'module': '用户认证', 'type': 'exception', 'test_point': '验证码过期后用户输入系统提示验证码过期', 'priority': 'P1'}, {'id': 'TP014', 'module': '用户认证', 'type': 'exception', 'test_point': '60秒内重复发送验证码系统提示发送间隔限制', 'priority': 'P1'}, {'id': 'TP015', 'module': '用户认证', 'type': 'exception', 'test_point': '每日超过10次发送限制系统提示日限额', 'priority': 'P1'}, {'id': 'TP016', 'module': '用户认证', 'type': 'exception', 'test_point': '非大陆手机号输入系统提示不支持', 'priority': 'P1'}, {'id': 'TP017', 'module': '用户认证', 'type': 'exception', 'test_point': '网络异常时验证码发送失败处理', 'priority': 'P2'}, {'id': 'TP018', 'module': '用户认证', 'type': 'security', 'test_point': '黑名单用户登录系统提示账号异常', 'priority': 'P0'}, {'id': 'TP019', 'module': '用户认证', 'type': 'security', 'test_point': '冻结账号用户登录系统提示账号冻结', 'priority': 'P0'}, {'id': 'TP020', 'module': '用户认证', 'type': 'security', 'test_point': '验证码长度不是6位时系统拒绝登录', 'priority': 'P1'}, {'id': 'TP021', 'module': '用户认证', 'type': 'boundary', 'test_point': '多设备同时登录同一账号的并发处理', 'priority': 'P1'}], 'duplicates': [{'original': 'TP003', 'duplicates': ['TP004', 'TP005']}, {'original': 'TP009', 'duplicates': ['TP010', 'TP011']}]}, 'testcase': [{'id': 'TC001', 'name': '用户认证_新用户有效手机号登录_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号13800138000', '点击获取验证码按钮', '收到SMS验证码并输入6位数字验证码', '点击登录按钮'], 'assert': ['页面跳转至首页', '显示用户昵称或头像', '系统生成新的用户ID', '登录状态保持']}, {'id': 'TC002', 'name': '用户认证_新用户登录_自动注册账号', 'priority': 'P0', 'steps': ['进入登录页面', '输入新手机号13900139000', '点击获取验证码按钮', '输入收到的6位验证码', '点击登录按钮'], 'assert': ['系统自动创建新账号', '用户信息包含手机号13900139000', '返回新建用户ID', '页面显示注册成功提示']}, {'id': 'TC003', 'name': '用户认证_手机号格式_11位标准号登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入11位标准手机号15000150000', '点击获取验证码', '输入正确验证码123456', '点击登录按钮'], 'assert': ['验证码发送成功', '登录成功跳转首页', '显示正确用户信息']}, {'id': 'TC004', 'name': '用户认证_手机号格式_带+86前缀登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号+8615100150001', '点击获取验证码', '输入正确验证码654321', '点击登录按钮'], 'assert': ['系统识别+86前缀', '验证码发送至15000150001', '登录成功进入首页']}, {'id': 'TC005', 'name': '用户认证_手机号格式_带空格登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号150 0015 0002', '点击获取验证码', '输入正确验证码111111', '点击登录按钮'], 'assert': ['系统自动去除空格', '验证码发送至15000150002', '登录成功跳转']}, {'id': 'TC006', 'name': '用户认证_验证码正确_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入已注册手机号15000150003', '获取验证码', '输入正确6位验证码222222', '点击登录'], 'assert': ['验证码验证通过', '登录成功跳转', '显示登录用户信息']}, {'id': 'TC007', 'name': '用户认证_黑名单登录_提示账号异常', 'priority': 'P0', 'steps': ['进入登录页面', '输入黑名单手机号15000150004', '获取验证码', '输入正确验证码333333', '点击登录'], 'assert': ['系统提示账号异常', '登录被拒绝', '显示联系客服提示']}, {'id': 'TC008', 'name': '用户认证_冻结账号登录_提示账号冻结', 'priority': 'P0', 'steps': ['进入登录页面', '输入冻结状态手机号15000150005', '获取验证码', '输入正确验证码444444', '点击登录'], 'assert': ['系统提示账号已冻结', '禁止登录操作', '显示解冻指引']}, {'id': 'TC009', 'name': '用户认证_验证码发送限制_60秒间隔提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150006', '点击获取验证码', '等待5秒后再次点击获取验证码'], 'assert': ['显示倒计时提示', '按钮置灰不可点击', '提示请等待60秒后重试']}, {'id': 'TC010', 'name': '用户认证_验证码错误_提示验证码错误', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150007', '获取验证码', '输入错误验证码999999', '点击登录'], 'assert': ['系统提示验证码错误', '登录失败', '验证码输入框清空']}, {'id': 'TC011', 'name': '用户认证_验证码过期_提示验证码过期', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150008', '获取验证码', '等待6分钟过期', '输入验证码555555', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC012', 'name': '用户认证_非大陆手机号_提示不支持', 'priority': 'P1', 'steps': ['进入登录页面', '输入香港手机号85291234567', '点击获取验证码'], 'assert': ['系统提示不支持该手机号', '验证码发送失败', '显示仅支持大陆手机号']}, {'id': 'TC013', 'name': '用户认证_多端登录_App端正常工作', 'priority': 'P0', 'steps': ['打开App', '进入登录页面', '输入手机号15000150009', '获取验证码', '输入正确验证码666666', '点击登录'], 'assert': ['App登录成功', '跳转主界面', '显示用户信息']}, {'id': 'TC014', 'name': '用户认证_多端登录_小程序端正常工作', 'priority': 'P0', 'steps': ['打开微信小程序', '进入登录页面', '输入手机号15000150010', '获取验证码', '输入正确验证码777777', '点击登录'], 'assert': ['小程序登录成功', '获取用户授权', '显示首页内容']}, {'id': 'TC015', 'name': '用户认证_多端登录_H5端正常工作', 'priority': 'P0', 'steps': ['访问H5页面', '进入登录页面', '输入手机号15000150011', '获取验证码', '输入正确验证码888888', '点击登录'], 'assert': ['H5登录成功', '页面跳转成功', '保存登录状态']}, {'id': 'TC016', 'name': '用户认证_验证码长度_非6位拒绝登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150012', '获取验证码', '输入5位验证码12345', '点击登录'], 'assert': ['系统提示验证码格式错误', '登录被拒绝', '提示验证码必须为6位']}, {'id': 'TC017', 'name': '用户认证_发送限制_10次日限额提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150013', '连续点击获取验证码11次', '在第11次点击时'], 'assert': ['系统提示今日发送次数已达上限', '验证码发送失败', '提示明日重试']}, {'id': 'TC018', 'name': '用户认证_网络异常_验证码发送失败处理', 'priority': 'P2', 'steps': ['断开网络连接', '进入登录页面', '输入手机号15000150014', '点击获取验证码'], 'assert': ['系统提示网络异常', '验证码发送失败', '显示重试按钮']}, {'id': 'TC019', 'name': '用户认证_多设备并发_同一账号登录处理', 'priority': 'P1', 'steps': ['设备A使用手机号15000150015登录', '设备B同时使用相同手机号登录', '设备B获取验证码并登录'], 'assert': ['设备B登录成功', '设备A收到下线通知或被踢下线', '系统只允许一处活跃登录']}], 'review': {'score': 85, 'issues': ['测试点TP021（多设备并发登录）仅有测试点，缺少对应测试用例', '验证码有效期测试不够完整，缺少边界时间点的测试', '手机号格式测试缺少边界情况，如：非数字字符、超长/过短格式', '缺少验证码多次错误输入的锁定机制测试', '60秒发送间隔测试用例中等待时间过短（5秒），应测试完整的间隔限制'], 'duplicates': ['TC001与TC002都测试新用户注册登录，存在功能重叠', 'TC008（冻结账号）与TC007（黑名单）测试逻辑相似，可能存在场景重复'], 'invalid': ['TC017步骤描述不准确，60秒间隔限制下无法连续点击11次', 'TC009步骤等待5秒后重试，但60秒间隔应测试完整的倒计时逻辑'], 'suggestions': ['补充多设备并发登录场景的详细测试用例', '增加验证码边界时间测试（4分59秒、5分01秒）', '补充验证码错误次数限制的测试用例', '优化发送间隔测试用例，测试完整的时间窗口', '增加手机号边界格式测试（特殊字符、长度异常）']}, 'coverage': {'coverage_rate': 90, 'missing': ['黑名单/冻结账号的解除状态测试', '验证码重发间隔精确到秒的边界测试'], 'risk_level': 'low'}, 'final_cases': [{'id': 'TC001', 'name': '用户认证_新用户有效手机号登录_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号13800138000', '点击获取验证码按钮', '收到SMS验证码并输入6位数字验证码', '点击登录按钮'], 'assert': ['页面跳转至首页', '显示用户昵称或头像', '系统生成新的用户ID', '登录状态保持']}, {'id': 'TC002', 'name': '用户认证_新用户登录_自动注册账号', 'priority': 'P0', 'steps': ['进入登录页面', '输入新手机号13900139000', '点击获取验证码按钮', '输入收到的6位验证码', '点击登录按钮'], 'assert': ['系统自动创建新账号', '用户信息包含手机号13900139000', '返回新建用户ID', '页面显示注册成功提示']}, {'id': 'TC003', 'name': '用户认证_手机号格式_11位标准号登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入11位标准手机号15000150000', '点击获取验证码', '输入正确验证码123456', '点击登录按钮'], 'assert': ['验证码发送成功', '登录成功跳转首页', '显示正确用户信息']}, {'id': 'TC004', 'name': '用户认证_手机号格式_带+86前缀登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号+861500150001', '点击获取验证码', '输入正确验证码654321', '点击登录按钮'], 'assert': ['系统识别+86前缀', '验证码发送至15000150001', '登录成功进入首页']}, {'id': 'TC005', 'name': '用户认证_手机号格式_带空格登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号150 0015 0002', '点击获取验证码', '输入正确验证码111111', '点击登录按钮'], 'assert': ['系统自动去除空格', '验证码发送至15000150002', '登录成功跳转']}, {'id': 'TC006', 'name': '用户认证_验证码正确_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入已注册手机号15000150003', '获取验证码', '输入正确6位验证码222222', '点击登录'], 'assert': ['验证码验证通过', '登录成功跳转', '显示登录用户信息']}, {'id': 'TC007', 'name': '用户认证_黑名单登录_提示账号异常', 'priority': 'P0', 'steps': ['进入登录页面', '输入黑名单手机号15000150004', '获取验证码', '输入正确验证码333333', '点击登录'], 'assert': ['系统提示账号异常', '登录被拒绝', '显示联系客服提示']}, {'id': 'TC008', 'name': '用户认证_冻结账号登录_提示账号冻结', 'priority': 'P0', 'steps': ['进入登录页面', '输入冻结状态手机号15000150005', '获取验证码', '输入正确验证码444444', '点击登录'], 'assert': ['系统提示账号已冻结', '禁止登录操作', '显示解冻指引']}, {'id': 'TC009', 'name': '用户认证_验证码发送限制_60秒间隔提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150006', '点击获取验证码', '等待5秒后再次点击获取验证码'], 'assert': ['显示倒计时提示', '按钮置灰不可点击', '提示请等待60秒后重试']}, {'id': 'TC010', 'name': '用户认证_验证码错误_提示验证码错误', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150007', '获取验证码', '输入错误验证码999999', '点击登录'], 'assert': ['系统提示验证码错误', '登录失败', '验证码输入框清空']}, {'id': 'TC011', 'name': '用户认证_验证码过期_提示验证码过期', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150008', '获取验证码', '等待6分钟过期', '输入验证码555555', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC012', 'name': '用户认证_非大陆手机号_提示不支持', 'priority': 'P1', 'steps': ['进入登录页面', '输入香港手机号85291234567', '点击获取验证码'], 'assert': ['系统提示不支持该手机号', '验证码发送失败', '显示仅支持大陆手机号']}, {'id': 'TC013', 'name': '用户认证_多端登录_App端正常工作', 'priority': 'P0', 'steps': ['打开App', '进入登录页面', '输入手机号15000150009', '获取验证码', '输入正确验证码666666', '点击登录'], 'assert': ['App登录成功', '跳转主界面', '显示用户信息']}, {'id': 'TC014', 'name': '用户认证_多端登录_小程序端正常工作', 'priority': 'P0', 'steps': ['打开微信小程序', '进入登录页面', '输入手机号15000150010', '获取验证码', '输入正确验证码777777', '点击登录'], 'assert': ['小程序登录成功', '获取用户授权', '显示首页内容']}, {'id': 'TC015', 'name': '用户认证_多端登录_H5端正常工作', 'priority': 'P0', 'steps': ['访问H5页面', '进入登录页面', '输入手机号15000150011', '获取验证码', '输入正确验证码888888', '点击登录'], 'assert': ['H5登录成功', '页面跳转成功', '保存登录状态']}, {'id': 'TC016', 'name': '用户认证_验证码长度_非6位拒绝登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150012', '获取验证码', '输入5位验证码12345', '点击登录'], 'assert': ['系统提示验证码格式错误', '登录被拒绝', '提示验证码必须为6位']}, {'id': 'TC017', 'name': '用户认证_发送限制_10次日限额提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150013', '连续点击获取验证码11次', '在第11次点击时'], 'assert': ['系统提示今日发送次数已达上限', '验证码发送失败', '提示明日重试']}, {'id': 'TC018', 'name': '用户认证_网络异常_验证码发送失败处理', 'priority': 'P2', 'steps': ['断开网络连接', '进入登录页面', '输入手机号15000150014', '点击获取验证码'], 'assert': ['系统提示网络异常', '验证码发送失败', '显示重试按钮']}, {'id': 'TC019', 'name': '用户认证_多设备并发_同一账号登录处理', 'priority': 'P1', 'steps': ['设备A使用手机号15000150015登录', '设备B同时使用相同手机号登录', '设备B获取验证码并登录'], 'assert': ['设备B登录成功', '设备A收到下线通知或被踢下线', '系统只允许一处活跃登录']}, {'id': 'TC020', 'name': '用户认证_手机号格式_非数字字符拒绝', 'priority': 'P1', 'steps': ['进入登录页面', '输入包含字母的手机号1380013800a', '点击获取验证码'], 'assert': ['系统提示手机号格式错误', '验证码发送失败', '提示请输入正确手机号']}, {'id': 'TC021', 'name': '用户认证_手机号格式_过短格式拒绝', 'priority': 'P1', 'steps': ['进入登录页面', '输入10位手机号1380013800', '点击获取验证码'], 'assert': ['系统提示手机号格式错误', '验证码发送失败', '提示手机号必须为11位']}, {'id': 'TC022', 'name': '用户认证_手机号格式_过长格式拒绝', 'priority': 'P1', 'steps': ['进入登录页面', '输入12位手机号138001380001', '点击获取验证码'], 'assert': ['系统提示手机号格式错误', '验证码发送失败', '提示手机号必须为11位']}, {'id': 'TC023', 'name': '用户认证_验证码有效期_5分59秒边界测试', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150016', '获取验证码', '等待5分59秒', '输入验证码', '点击登录'], 'assert': ['验证码验证通过', '登录成功', '跳转至首页']}, {'id': 'TC024', 'name': '用户认证_验证码有效期_6分01秒过期边界', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150017', '获取验证码', '等待6分01秒', '输入验证码', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC025', 'name': '用户认证_验证码错误锁定_连续3次错误锁定', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150018', '获取验证码', '输入错误验证码111111', '输入错误验证码222222', '输入错误验证码333333'], 'assert': ['系统提示连续3次错误', '账号被临时锁定', '提示15分钟后重试或联系客服']}, {'id': 'TC026', 'name': '用户认证_发送间隔_59秒仍可重发', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150019', '点击获取验证码', '等待59秒', '再次点击获取验证码'], 'assert': ['验证码重新发送成功', '显示新验证码', '不显示限制提示']}, {'id': 'TC027', 'name': '用户认证_发送间隔_61秒限制解除', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150020', '点击获取验证码', '等待61秒', '再次点击获取验证码'], 'assert': ['倒计时结束', '按钮恢复正常状态', '验证码发送成功']}, {'id': 'TC028', 'name': '用户认证_黑名单状态解除_解封后正常登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入已解封手机号15000150021', '获取验证码', '输入正确验证码', '点击登录'], 'assert': ['验证码发送成功', '登录通过验证', '跳转至首页']}, {'id': 'TC029', 'name': '用户认证_冻结状态解除_解冻后正常登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入已解冻手机号15000150022', '获取验证码', '输入正确验证码', '点击登录'], 'assert': ['验证码发送成功', '登录验证通过', '跳转至首页']}, {'id': 'TC030', 'name': '用户认证_验证码重发间隔_精确到秒边界', 'priority': 'P2', 'steps': ['进入登录页面', '输入手机号15000150023', '获取验证码', '等待30秒', '再次获取验证码', '记录发送间隔时间'], 'assert': ['间隔时间精确到秒', '按倒计时规则执行', '发送间隔符合业务规则']}, {'id': 'TC031', 'name': '用户认证_多端登录状态保持_设备切换验证', 'priority': 'P1', 'steps': ['设备A登录手机号15000150024', '设备B重新登录相同账号', '登录成功后切换回设备A', '设备A尝试操作'], 'assert': ['设备A需要重新登录', '设备B保持登录状态', '系统正确管理会话状态']}]}
-[2026-04-26 21:40:50,736] [INFO] [AITestCraft] Token usage: {'workflow': {'input_tokens': 0, 'output_tokens': 0, 'total_tokens': 0}, 'nodes': {}}
-[2026-04-26 21:40:50,736] [INFO] [AITestCraft] [{'id': 'TC001', 'name': '用户认证_新用户有效手机号登录_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号13800138000', '点击获取验证码按钮', '收到SMS验证码并输入6位数字验证码', '点击登录按钮'], 'assert': ['页面跳转至首页', '显示用户昵称或头像', '系统生成新的用户ID', '登录状态保持']}, {'id': 'TC002', 'name': '用户认证_新用户登录_自动注册账号', 'priority': 'P0', 'steps': ['进入登录页面', '输入新手机号13900139000', '点击获取验证码按钮', '输入收到的6位验证码', '点击登录按钮'], 'assert': ['系统自动创建新账号', '用户信息包含手机号13900139000', '返回新建用户ID', '页面显示注册成功提示']}, {'id': 'TC003', 'name': '用户认证_手机号格式_11位标准号登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入11位标准手机号15000150000', '点击获取验证码', '输入正确验证码123456', '点击登录按钮'], 'assert': ['验证码发送成功', '登录成功跳转首页', '显示正确用户信息']}, {'id': 'TC004', 'name': '用户认证_手机号格式_带+86前缀登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号+861500150001', '点击获取验证码', '输入正确验证码654321', '点击登录按钮'], 'assert': ['系统识别+86前缀', '验证码发送至15000150001', '登录成功进入首页']}, {'id': 'TC005', 'name': '用户认证_手机号格式_带空格登录成功', 'priority': 'P0', 'steps': ['进入登录页面', '输入手机号150 0015 0002', '点击获取验证码', '输入正确验证码111111', '点击登录按钮'], 'assert': ['系统自动去除空格', '验证码发送至15000150002', '登录成功跳转']}, {'id': 'TC006', 'name': '用户认证_验证码正确_成功登录', 'priority': 'P0', 'steps': ['进入登录页面', '输入已注册手机号15000150003', '获取验证码', '输入正确6位验证码222222', '点击登录'], 'assert': ['验证码验证通过', '登录成功跳转', '显示登录用户信息']}, {'id': 'TC007', 'name': '用户认证_黑名单登录_提示账号异常', 'priority': 'P0', 'steps': ['进入登录页面', '输入黑名单手机号15000150004', '获取验证码', '输入正确验证码333333', '点击登录'], 'assert': ['系统提示账号异常', '登录被拒绝', '显示联系客服提示']}, {'id': 'TC008', 'name': '用户认证_冻结账号登录_提示账号冻结', 'priority': 'P0', 'steps': ['进入登录页面', '输入冻结状态手机号15000150005', '获取验证码', '输入正确验证码444444', '点击登录'], 'assert': ['系统提示账号已冻结', '禁止登录操作', '显示解冻指引']}, {'id': 'TC009', 'name': '用户认证_验证码发送限制_60秒间隔提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150006', '点击获取验证码', '等待5秒后再次点击获取验证码'], 'assert': ['显示倒计时提示', '按钮置灰不可点击', '提示请等待60秒后重试']}, {'id': 'TC010', 'name': '用户认证_验证码错误_提示验证码错误', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150007', '获取验证码', '输入错误验证码999999', '点击登录'], 'assert': ['系统提示验证码错误', '登录失败', '验证码输入框清空']}, {'id': 'TC011', 'name': '用户认证_验证码过期_提示验证码过期', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150008', '获取验证码', '等待6分钟过期', '输入验证码555555', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC012', 'name': '用户认证_非大陆手机号_提示不支持', 'priority': 'P1', 'steps': ['进入登录页面', '输入香港手机号85291234567', '点击获取验证码'], 'assert': ['系统提示不支持该手机号', '验证码发送失败', '显示仅支持大陆手机号']}, {'id': 'TC013', 'name': '用户认证_多端登录_App端正常工作', 'priority': 'P0', 'steps': ['打开App', '进入登录页面', '输入手机号15000150009', '获取验证码', '输入正确验证码666666', '点击登录'], 'assert': ['App登录成功', '跳转主界面', '显示用户信息']}, {'id': 'TC014', 'name': '用户认证_多端登录_小程序端正常工作', 'priority': 'P0', 'steps': ['打开微信小程序', '进入登录页面', '输入手机号15000150010', '获取验证码', '输入正确验证码777777', '点击登录'], 'assert': ['小程序登录成功', '获取用户授权', '显示首页内容']}, {'id': 'TC015', 'name': '用户认证_多端登录_H5端正常工作', 'priority': 'P0', 'steps': ['访问H5页面', '进入登录页面', '输入手机号15000150011', '获取验证码', '输入正确验证码888888', '点击登录'], 'assert': ['H5登录成功', '页面跳转成功', '保存登录状态']}, {'id': 'TC016', 'name': '用户认证_验证码长度_非6位拒绝登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150012', '获取验证码', '输入5位验证码12345', '点击登录'], 'assert': ['系统提示验证码格式错误', '登录被拒绝', '提示验证码必须为6位']}, {'id': 'TC017', 'name': '用户认证_发送限制_10次日限额提示', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150013', '连续点击获取验证码11次', '在第11次点击时'], 'assert': ['系统提示今日发送次数已达上限', '验证码发送失败', '提示明日重试']}, {'id': 'TC018', 'name': '用户认证_网络异常_验证码发送失败处理', 'priority': 'P2', 'steps': ['断开网络连接', '进入登录页面', '输入手机号15000150014', '点击获取验证码'], 'assert': ['系统提示网络异常', '验证码发送失败', '显示重试按钮']}, {'id': 'TC019', 'name': '用户认证_多设备并发_同一账号登录处理', 'priority': 'P1', 'steps': ['设备A使用手机号15000150015登录', '设备B同时使用相同手机号登录', '设备B获取验证码并登录'], 'assert': ['设备B登录成功', '设备A收到下线通知或被踢下线', '系统只允许一处活跃登录']}, {'id': 'TC020', 'name': '用户认证_手机号格式_非数字字符拒绝', 'priority': 'P1', 'steps': ['进入登录页面', '输入包含字母的手机号1380013800a', '点击获取验证码'], 'assert': ['系统提示手机号格式错误', '验证码发送失败', '提示请输入正确手机号']}, {'id': 'TC021', 'name': '用户认证_手机号格式_过短格式拒绝', 'priority': 'P1', 'steps': ['进入登录页面', '输入10位手机号1380013800', '点击获取验证码'], 'assert': ['系统提示手机号格式错误', '验证码发送失败', '提示手机号必须为11位']}, {'id': 'TC022', 'name': '用户认证_手机号格式_过长格式拒绝', 'priority': 'P1', 'steps': ['进入登录页面', '输入12位手机号138001380001', '点击获取验证码'], 'assert': ['系统提示手机号格式错误', '验证码发送失败', '提示手机号必须为11位']}, {'id': 'TC023', 'name': '用户认证_验证码有效期_5分59秒边界测试', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150016', '获取验证码', '等待5分59秒', '输入验证码', '点击登录'], 'assert': ['验证码验证通过', '登录成功', '跳转至首页']}, {'id': 'TC024', 'name': '用户认证_验证码有效期_6分01秒过期边界', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150017', '获取验证码', '等待6分01秒', '输入验证码', '点击登录'], 'assert': ['系统提示验证码已过期', '登录失败', '提示重新获取验证码']}, {'id': 'TC025', 'name': '用户认证_验证码错误锁定_连续3次错误锁定', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150018', '获取验证码', '输入错误验证码111111', '输入错误验证码222222', '输入错误验证码333333'], 'assert': ['系统提示连续3次错误', '账号被临时锁定', '提示15分钟后重试或联系客服']}, {'id': 'TC026', 'name': '用户认证_发送间隔_59秒仍可重发', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150019', '点击获取验证码', '等待59秒', '再次点击获取验证码'], 'assert': ['验证码重新发送成功', '显示新验证码', '不显示限制提示']}, {'id': 'TC027', 'name': '用户认证_发送间隔_61秒限制解除', 'priority': 'P1', 'steps': ['进入登录页面', '输入手机号15000150020', '点击获取验证码', '等待61秒', '再次点击获取验证码'], 'assert': ['倒计时结束', '按钮恢复正常状态', '验证码发送成功']}, {'id': 'TC028', 'name': '用户认证_黑名单状态解除_解封后正常登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入已解封手机号15000150021', '获取验证码', '输入正确验证码', '点击登录'], 'assert': ['验证码发送成功', '登录通过验证', '跳转至首页']}, {'id': 'TC029', 'name': '用户认证_冻结状态解除_解冻后正常登录', 'priority': 'P1', 'steps': ['进入登录页面', '输入已解冻手机号15000150022', '获取验证码', '输入正确验证码', '点击登录'], 'assert': ['验证码发送成功', '登录验证通过', '跳转至首页']}, {'id': 'TC030', 'name': '用户认证_验证码重发间隔_精确到秒边界', 'priority': 'P2', 'steps': ['进入登录页面', '输入手机号15000150023', '获取验证码', '等待30秒', '再次获取验证码', '记录发送间隔时间'], 'assert': ['间隔时间精确到秒', '按倒计时规则执行', '发送间隔符合业务规则']}, {'id': 'TC031', 'name': '用户认证_多端登录状态保持_设备切换验证', 'priority': 'P1', 'steps': ['设备A登录手机号15000150024', '设备B重新登录相同账号', '登录成功后切换回设备A', '设备A尝试操作'], 'assert': ['设备A需要重新登录', '设备B保持登录状态', '系统正确管理会话状态']}]
-[2026-04-28 07:07:40,062] [INFO] [AITestCraft] node start: requirement
-[2026-04-28 07:07:40,063] [INFO] [AITestCraft] False
-[2026-04-28 07:07:40,063] [INFO] [AITestCraft] requirement attempt 1
-[2026-04-28 07:07:40,799] [WARNING] [AITestCraft] agent error: <class 'agent_framework.openai._chat_client.OpenAIChatClient'> service failed to complete the prompt: Error code: 401 - Api key is invalid, retry in 1s
-[2026-04-28 07:07:41,843] [WARNING] [AITestCraft] agent error: <class 'agent_framework.openai._chat_client.OpenAIChatClient'> service failed to complete the prompt: Error code: 401 - Api key is invalid, retry in 2s
-[2026-04-28 07:07:43,889] [WARNING] [AITestCraft] agent error: <class 'agent_framework.openai._chat_client.OpenAIChatClient'> service failed to complete the prompt: Error code: 401 - Api key is invalid, retry in 4s
-[2026-04-28 07:12:52,583] [INFO] [AITestCraft] node start: requirement
-[2026-04-28 07:12:52,584] [INFO] [AITestCraft] False
-[2026-04-28 07:12:52,584] [INFO] [AITestCraft] requirement attempt 1
-[2026-04-28 07:12:53,155] [WARNING] [AITestCraft] agent error: <class 'agent_framework.openai._chat_client.OpenAIChatClient'> service failed to complete the prompt: 'ascii' codec can't encode characters in position 7-8: ordinal not in range(128), retry in 1s
-[2026-04-28 07:12:54,162] [WARNING] [AITestCraft] agent error: <class 'agent_framework.openai._chat_client.OpenAIChatClient'> service failed to complete the prompt: 'ascii' codec can't encode characters in position 7-8: ordinal not in range(128), retry in 2s
+[2026-05-13 06:09:56,365] [INFO] [AITestCraft] 节点完成: [dedup], 输出键: ['testcase']
+[2026-05-13 06:09:56,366] [INFO] [AITestCraft] 节点开始: [testcase]
+[2026-05-13 06:10:01,217] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:10:09,913] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:10:25,268] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:10:30,880] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:10:45,671] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:10:57,125] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:11:03,429] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:11:29,924] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:11:56,398] [WARNING] [AITestCraft] Agent超时 (120秒): , 1秒后重试 (1/3)
+[2026-05-13 06:11:57,409] [INFO] [AITestCraft] 第 2 次重试开始
+[2026-05-13 06:13:53,692] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:13:57,511] [WARNING] [AITestCraft] Agent超时 (120秒): , 2秒后重试 (2/3)
+[2026-05-13 06:13:59,515] [INFO] [AITestCraft] 第 3 次重试开始
+[2026-05-13 06:14:20,026] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:14:38,598] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:14:48,118] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:15:03,180] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:15:11,800] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:15:19,790] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:15:29,135] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:15:57,236] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:15:59,580] [WARNING] [AITestCraft] Agent超时 (120秒): , 4秒后重试 (3/3)
+[2026-05-13 06:15:59,584] [ERROR] [AITestCraft] 重试 3 次后仍失败，最后一次错误: 
+[2026-05-13 06:16:03,590] [ERROR] [AITestCraft] 节点 [testcase] 多次重试仍失败: 
+[2026-05-13 06:16:03,609] [ERROR] [AITestCraft] 任务执行失败: 节点 [testcase] 多次重试仍失败: 
+[2026-05-13 06:16:13,424] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:16:39,179] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:18:53,232] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:19:13,778] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:19:21,622] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:19:29,708] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:19:48,182] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:19:57,089] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:20:08,133] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:20:24,279] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:20:29,579] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:20:38,885] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:20:47,894] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:21:04,035] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:21:13,829] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:22:53,395] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:23:07,125] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:23:12,826] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:23:15,496] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:23:25,422] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:23:34,245] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:26:30,013] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:26:33,365] [INFO] [AITestCraft] 配置验证通过
+[2026-05-13 06:26:42,051] [INFO] [AITestCraft] 配置验证通过

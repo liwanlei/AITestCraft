@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 TESTCASE_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["id", "name", "priority", "steps", "assert"],
+        "required": ["id", "name", "priority", "precondition", "steps", "assert"],
         "properties": {
             "id": {"type": "string"},
             "name": {"type": "string"},
             "priority": {"enum": ["P0", "P1", "P2"]},
+            "precondition": {"type": "string"},
             "steps": {
                 "type": "array",
                 "items": {"type": "string"}
@@ -15,7 +17,8 @@ TESTCASE_SCHEMA = {
                 "type": "array",
                 "items": {"type": "string"}
             }
-        }
+        },
+        "additionalProperties": False
     }
 }
 REVIEW_SCHEMA = {
@@ -46,7 +49,7 @@ REVIEW_SCHEMA = {
     },
     "additionalProperties": False
 }
-COVERAGE_SCHEMA =  {
+COVERAGE_SCHEMA = {
     "type": "object",
     "required": ["coverage_rate", "missing", "risk_level"],
     "properties": {
@@ -70,11 +73,12 @@ GAP_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["id", "name", "priority", "steps", "assert"],
+        "required": ["id", "name", "priority", "precondition", "steps", "assert"],
         "properties": {
             "id": {"type": "string"},
             "name": {"type": "string"},
             "priority": {"enum": ["P0", "P1", "P2"]},
+            "precondition": {"type": "string"},
             "steps": {
                 "type": "array",
                 "items": {"type": "string"}
@@ -83,6 +87,7 @@ GAP_SCHEMA = {
                 "type": "array",
                 "items": {"type": "string"}
             }
-        }
+        },
+        "additionalProperties": False
     }
 }
