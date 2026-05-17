@@ -2,7 +2,7 @@
 name: testpoint-deduplicator
 description: >
   测试点去重引擎。识别语义重复或高度相似的测试点，并输出唯一测试点列表。
-version: 3.0
+version: 4.0
 author: leizi
 ---
 
@@ -13,64 +13,55 @@ author: leizi
 识别测试点列表中的语义重复或高度相似项，并进行合并。
 
 ## 重复判断规则
-1. 场景相同（例如：密码错误登录 / 密码错误提示）
-2. 行为相同（例如：手机号为空 / 手机号未填写）
+1. 场景相同
+2. 行为相同
 3. 断言目标一致
 4. 语义高度相似
-
-## 重复类型
-- 完全重复
-- 语义重复
-- 场景重复
 
 # INPUT
 测试点列表：
 {{testpoints}}
 
 # OUTPUT
-严格输出 JSON object：
+严格输出 Markdown 格式：
 
-{
-  "unique_testpoints": [
-    {
-      "id": "string",
-      "module": "string",
-      "type": "functional|boundary|exception|security|performance|compatibility",
-      "test_point": "string",
-      "priority": "P0|P1|P2"
-    }
-  ],
-  "duplicates": [
-    {
-      "original": "string",
-      "duplicates": ["string"]
-    }
-  ]
-}
+## 去重后的测试点
+
+| ID | 模块 | 类型 | 测试点 | 优先级 |
+|---|---|---|---|---|
+| TP001 | [模块] | [类型] | [测试点描述] | P0/P1/P2 |
+
+## 重复项
+
+| 原始ID | 重复ID |
+|---|---|
+| TP001 | TP002 |
 
 # RULES
-- 只输出 JSON
+- 只输出 Markdown 格式
 - 所有文本内容必须使用中文
-- 禁止输出 markdown
+- 禁止输出 JSON
 - 禁止输出解释
-- 禁止输出 ```json
-- 必须可以被 json.loads 成功解析
+- 禁止输出 ```json 代码块
 
 # EXAMPLE
 输入：
-[
-  {"id": "TP001", "module": "登录", "type": "functional", "test_point": "手机号验证码登录", "priority": "P0"},
-  {"id": "TP002", "module": "登录", "type": "functional", "test_point": "手机号和验证码登录", "priority": "P0"},
-  {"id": "TP003", "module": "登录", "type": "exception", "test_point": "验证码错误提示", "priority": "P1"}
-]
+| ID | 模块 | 类型 | 测试点 | 优先级 |
+|---|---|---|---|---|
+| TP001 | 登录 | functional | 手机号验证码登录 | P0 |
+| TP002 | 登录 | functional | 手机号和验证码登录 | P0 |
+| TP003 | 登录 | exception | 验证码错误提示 | P1 |
 
 输出：
-{
-  "unique_testpoints": [
-    {"id": "TP001", "module": "登录", "type": "functional", "test_point": "手机号验证码登录", "priority": "P0"},
-    {"id": "TP003", "module": "登录", "type": "exception", "test_point": "验证码错误提示", "priority": "P1"}
-  ],
-  "duplicates": [
-    {"original": "TP001", "duplicates": ["TP002"]}
-  ]
-}
+## 去重后的测试点
+
+| ID | 模块 | 类型 | 测试点 | 优先级 |
+|---|---|---|---|---|
+| TP001 | 登录 | functional | 手机号验证码登录 | P0 |
+| TP003 | 登录 | exception | 验证码错误提示 | P1 |
+
+## 重复项
+
+| 原始ID | 重复ID |
+|---|---|
+| TP001 | TP002 |

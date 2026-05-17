@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import uvicorn
 from dotenv import load_dotenv
+
+load_dotenv()
+
+import uvicorn
 
 from api.main import app
 from config.config import Config
-
-load_dotenv()
 
 
 if __name__ == "__main__":

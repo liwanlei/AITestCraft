@@ -1,23 +1,14 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from config.config import Config
-
-
-class TaskRequest(BaseModel):
-    """任务请求模型"""
-    task: str = Field(..., description="测试需求内容", max_length=Config.API_MAX_TASK_LENGTH)
-
 
 class TaskResponse(BaseModel):
-    """任务响应模型"""
     task_id: str = Field(..., description="任务ID")
 
 
 class StatusResponse(BaseModel):
-    """任务状态响应模型"""
     id: str = Field(..., description="任务ID")
     task: str = Field(..., description="任务内容")
     status: str = Field(..., description="任务状态")
@@ -25,24 +16,30 @@ class StatusResponse(BaseModel):
     updated_at: str = Field(..., description="更新时间")
 
 
+class XMindFormats(BaseModel):
+    xmind_8: str = Field(..., description="XMind 8 格式，base64 编码")
+    xmind_2023: str = Field(..., description="XMind 2023 格式，base64 编码")
+    xmind_8_filename: str = Field(..., description="XMind 8 文件名")
+    xmind_2023_filename: str = Field(..., description="XMind 2023 文件名")
+
+
+class MultiFormatResult(BaseModel):
+    json_data: Union[Dict[str, Any], List[Any]] = Field(..., alias="json", description="JSON 格式测试用例（支持字典或列表）")
+    markdown: str = Field(..., description="Markdown 格式")
+    xmind: XMindFormats = Field(..., description="XMind 格式")
+
+    class Config:
+        populate_by_name = True
+
+
 class ResultResponse(BaseModel):
-    """任务结果响应模型"""
-    result: Optional[Any] = Field(None, description="执行结果")
+    result: Optional[MultiFormatResult] = Field(None, description="多格式执行结果")
+    files: Optional[Dict[str, Optional[str]]] = Field(None, description="结果文件路径")
+    message: Optional[str] = Field(None, description="状态消息")
+    status: Optional[str] = Field(None, description="任务状态")
 
 
 class LogResponse(BaseModel):
-    """任务日志响应模型"""
     task_id: str = Field(..., description="任务ID")
     logs: List[Dict[str, Any]] = Field(..., description="日志列表")
     total: int = Field(..., description="日志总数")
-
-
-class ErrorResponse(BaseModel):
-    """错误响应模型"""
-    detail: str = Field(..., description="错误信息")
-    code: Optional[int] = Field(None, description="错误码")
-
-
-class HealthResponse(BaseModel):
-    """健康检查响应模型"""
-    status: str = Field(..., description="服务状态")

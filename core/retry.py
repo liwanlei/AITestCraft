@@ -28,8 +28,7 @@ async def run_with_retry(
             if i > 0:
                 logger.info(f"第 {i + 1} 次重试开始")
             return await asyncio.wait_for(
-                agent.run(payload, model_settings=model_settings),
-                timeout=timeout
+                agent.run(payload, model_settings=model_settings), timeout=timeout
             )
         except Exception as e:
             last_err = e
@@ -41,24 +40,3 @@ async def run_with_retry(
                 logger.error(f"重试 {retries} 次后仍失败，最后一次错误: {e}")
             await asyncio.sleep(wait)
     raise last_err
-
-
-def should_trigger_gap_filler(diagnosis: Dict) -> bool:
-    """判断是否需要执行缺口填充节点
-    
-    根据审查结果和覆盖率分析决定是否触发缺口填充：
-    - 风险等级为高
-    - 存在审查问题
-    - 存在覆盖率缺失
-    
-    Args:
-        diagnosis: 包含审查和覆盖率信息的字典
-        
-    Returns:
-        是否需要执行缺口填充
-    """
-    return (
-        diagnosis.get("risk_level") == "high"
-        or len(diagnosis.get("issues", [])) > 0
-        or len(diagnosis.get("missing", [])) > 0
-    )

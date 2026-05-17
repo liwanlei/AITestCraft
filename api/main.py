@@ -6,12 +6,23 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config.config import Config
 from storage.db import init_db
+from utils.parsers._http import close_shared_session
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Config.validate()
     init_db()
+    
+    # 启动时恢复中断的任务
+    if Config.TASK_RECOVERY_ENABLED:
+        from api.recovery import recover_interrupted_tasks
+        await recover_interrupted_tasks()
+    
     yield
+    from storage.db import get_db
+    get_db().close_all_connections()
+    close_shared_session()
 
 
 app = FastAPI(
@@ -21,7 +32,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# 配置 CORS 中间件
 app.add_middleware(
     CORSMiddleware,
     allow_origins=Config.CORS_ORIGINS,
@@ -30,9 +40,11 @@ app.add_middleware(
     allow_headers=Config.CORS_ALLOW_HEADERS,
 )
 
-# 导入并注册路由
 from api.endpoints.tasks import router as tasks_router
-from api.endpoints.rate_limit import router as rate_limit_router
 
 app.include_router(tasks_router, tags=["tasks"])
-app.include_router(rate_limit_router, tags=["rate-limit"])
+
+
+@app.get("/health")
+async def health_check() -> dict:
+    return {"status": "ok"}
