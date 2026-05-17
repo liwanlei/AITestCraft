@@ -98,10 +98,6 @@ uv install
 
 ### 2. 配置环境变量
 
-```bash
-cp .env.example .env
-```
-
 编辑 `.env`：
 
 ```ini
