@@ -75,10 +75,6 @@ class Config:
     CORS_ALLOW_METHODS: List[str] = _get_env_list("CORS_ALLOW_METHODS", "GET,POST,PUT,DELETE,OPTIONS")
     CORS_ALLOW_HEADERS: List[str] = _get_env_list("CORS_ALLOW_HEADERS", "Content-Type,Authorization")
 
-    API_MAX_TASK_LENGTH: int = 10000
-    API_RATE_LIMIT_PER_MINUTE: int = _get_env_int("API_RATE_LIMIT_PER_MINUTE", 5)
-    API_RATE_LIMIT_WINDOW_SECONDS: int = _get_env_int("API_RATE_LIMIT_WINDOW_SECONDS", 60)
-
     MAX_FILE_SIZE: int = _get_env_int("MAX_FILE_SIZE", 10 * 1024 * 1024)
     ALLOWED_FILE_TYPES: List[str] = ["md", "markdown", "txt", "pdf"]
 
@@ -116,15 +112,6 @@ class Config:
 
         if cls.SERVER_PORT < 1 or cls.SERVER_PORT > 65535:
             errors.append(f"SERVER_PORT 必须在 1-65535 范围内，当前值: {cls.SERVER_PORT}")
-
-        if cls.API_RATE_LIMIT_PER_MINUTE <= 0:
-            errors.append(f"API_RATE_LIMIT_PER_MINUTE 必须大于 0，当前值: {cls.API_RATE_LIMIT_PER_MINUTE}")
-
-        if cls.API_RATE_LIMIT_WINDOW_SECONDS <= 0:
-            errors.append(f"API_RATE_LIMIT_WINDOW_SECONDS 必须大于 0，当前值: {cls.API_RATE_LIMIT_WINDOW_SECONDS}")
-
-        if cls.API_MAX_TASK_LENGTH <= 0:
-            errors.append(f"API_MAX_TASK_LENGTH 必须大于 0，当前值: {cls.API_MAX_TASK_LENGTH}")
 
         if cls.NODE_MAX_RETRY < 0:
             errors.append(f"NODE_MAX_RETRY 不能为负数，当前值: {cls.NODE_MAX_RETRY}")

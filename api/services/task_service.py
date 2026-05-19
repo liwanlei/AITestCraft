@@ -2,7 +2,7 @@
 import asyncio
 import uuid
 
-from fastapi import Request, HTTPException, status
+from fastapi import Request
 
 from config.config import Config
 from core.taskexecution import taskexecution
@@ -11,12 +11,6 @@ from utils.logger import logger
 
 
 async def process_task(request: Request, task_content: str) -> dict:
-    if len(task_content) > Config.API_MAX_TASK_LENGTH:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"任务内容超过限制（最大 {Config.API_MAX_TASK_LENGTH} 字符）"
-        )
-
     task_id = str(uuid.uuid4())
     logger.info(f"创建任务: {task_id}")
     create_task(task_id, task_content)

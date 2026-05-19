@@ -3,7 +3,6 @@ import base64
 import json
 import uuid
 import zipfile
-from datetime import datetime
 from io import BytesIO
 from typing import List, Dict, Any, Optional
 
@@ -24,10 +23,18 @@ class XMindFormatter(BaseFormatter):
             version = "8"
 
         meta = self._build_metadata(metadata)
+        content = self._build_content_json(testcases, meta)
+        metadata_json = self._build_metadata_json()
+        manifest_json = self._build_manifest_json()
 
-        if version == "2023":
-            return self._build_xmind_2023(testcases, meta)
-        return self._build_xmind_8(testcases, meta)
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("content.json", json.dumps(content, ensure_ascii=False, indent=2))
+            zf.writestr("metadata.json", json.dumps(metadata_json, ensure_ascii=False, indent=2))
+            zf.writestr("manifest.json", json.dumps(manifest_json, ensure_ascii=False, indent=2))
+
+        zip_buffer.seek(0)
+        return zip_buffer.read()
 
     def format_8(self, testcases: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None) -> bytes:
         return self.format(testcases, metadata, "8")
@@ -35,36 +42,9 @@ class XMindFormatter(BaseFormatter):
     def format_2023(self, testcases: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None) -> bytes:
         return self.format(testcases, metadata, "2023")
 
-    def _build_xmind_8(self, testcases: List[Dict[str, Any]], metadata: Dict[str, Any]) -> bytes:
-        content = self._build_content_json(testcases, metadata)
-        metadata_json = self._build_metadata_json(metadata)
-
-        zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-            zf.writestr("content.json", json.dumps(content, ensure_ascii=False, indent=2))
-            zf.writestr("metadata.json", json.dumps(metadata_json, ensure_ascii=False, indent=2))
-            zf.writestr("META-INF/manifest.xml", self._build_manifest())
-
-        zip_buffer.seek(0)
-        return zip_buffer.read()
-
-    def _build_xmind_2023(self, testcases: List[Dict[str, Any]], metadata: Dict[str, Any]) -> bytes:
-        content = self._build_content_json(testcases, metadata)
-        metadata_json = self._build_metadata_json(metadata, version="2023")
-
-        zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-            zf.writestr("content.json", json.dumps(content, ensure_ascii=False, indent=2))
-            zf.writestr("metadata.json", json.dumps(metadata_json, ensure_ascii=False, indent=2))
-            zf.writestr("META-INF/manifest.xml", self._build_manifest_2023())
-            zf.writestr("thumbnail/thumbnail.png", self._build_empty_thumbnail())
-
-        zip_buffer.seek(0)
-        return zip_buffer.read()
-
-    def _build_content_json(self, testcases: List[Dict[str, Any]], metadata: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_content_json(self, testcases: List[Dict[str, Any]], metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
+        sheet_id = str(uuid.uuid4())
         root_id = str(uuid.uuid4())
-        topic_id = str(uuid.uuid4())
 
         priority_groups = self._group_by_priority(testcases)
 
@@ -79,22 +59,22 @@ class XMindFormatter(BaseFormatter):
         summary_node = self._build_summary_node(testcases, metadata)
         children.append(summary_node)
 
-        return {
-            "id": topic_id,
+        sheet = {
+            "id": sheet_id,
+            "class": "sheet",
             "title": metadata.get("title", "测试用例文档"),
-            "metadata": {
-                "generator": "AITestCraft",
-                "created": datetime.now().isoformat() + "Z",
-                "modified": datetime.now().isoformat() + "Z"
-            },
             "rootTopic": {
                 "id": root_id,
+                "class": "topic",
                 "title": metadata.get("requirement", "测试用例"),
+                "structureClass": "org.xmind.ui.map.clockwise",
                 "children": {
                     "attached": children
                 }
             }
         }
+
+        return [sheet]
 
     def _build_priority_node(self, priority: str, cases: List[Dict[str, Any]]) -> Dict[str, Any]:
         priority_id = str(uuid.uuid4())
@@ -106,6 +86,7 @@ class XMindFormatter(BaseFormatter):
 
         return {
             "id": priority_id,
+            "class": "topic",
             "title": f"{priority} 优先级",
             "children": {
                 "attached": case_nodes
@@ -117,30 +98,31 @@ class XMindFormatter(BaseFormatter):
         case_title = f"{case.get('id', '')}: {case.get('name', '')}"
 
         attached = [
-            {"id": str(uuid.uuid4()), "title": f"优先级: {case.get('priority', '')}"},
-            {"id": str(uuid.uuid4()), "title": f"前置条件: {case.get('precondition', '')}"}
+            {"id": str(uuid.uuid4()), "class": "topic", "title": f"优先级: {case.get('priority', '')}"},
+            {"id": str(uuid.uuid4()), "class": "topic", "title": f"前置条件: {case.get('precondition', '')}"}
         ]
 
         steps = case.get("steps", [])
         if isinstance(steps, list) and steps:
-            steps_node = {"id": str(uuid.uuid4()), "title": "测试步骤"}
+            steps_node = {"id": str(uuid.uuid4()), "class": "topic", "title": "测试步骤"}
             step_items = []
             for i, step in enumerate(steps):
-                step_items.append({"id": str(uuid.uuid4()), "title": f"{i+1}. {step}"})
+                step_items.append({"id": str(uuid.uuid4()), "class": "topic", "title": f"{i+1}. {step}"})
             steps_node["children"] = {"attached": step_items}
             attached.append(steps_node)
 
         assert_list = case.get("assert", [])
         if isinstance(assert_list, list) and assert_list:
-            assert_node = {"id": str(uuid.uuid4()), "title": "预期结果"}
+            assert_node = {"id": str(uuid.uuid4()), "class": "topic", "title": "预期结果"}
             assert_items = []
             for i, item in enumerate(assert_list):
-                assert_items.append({"id": str(uuid.uuid4()), "title": f"{i+1}. {item}"})
+                assert_items.append({"id": str(uuid.uuid4()), "class": "topic", "title": f"{i+1}. {item}"})
             assert_node["children"] = {"attached": assert_items}
             attached.append(assert_node)
 
         return {
             "id": case_id,
+            "class": "topic",
             "title": case_title,
             "children": {
                 "attached": attached
@@ -156,66 +138,43 @@ class XMindFormatter(BaseFormatter):
             priority_counts[priority] = priority_counts.get(priority, 0) + 1
 
         attached = [
-            {"id": str(uuid.uuid4()), "title": f"总计用例: {len(testcases)}"}
+            {"id": str(uuid.uuid4()), "class": "topic", "title": f"总计用例: {len(testcases)}"}
         ]
 
         for priority in ["P0", "P1", "P2"]:
             if priority in priority_counts:
-                attached.append({"id": str(uuid.uuid4()), "title": f"{priority}: {priority_counts[priority]}"})
+                attached.append({"id": str(uuid.uuid4()), "class": "topic", "title": f"{priority}: {priority_counts[priority]}"})
 
         if metadata.get("coverage"):
-            attached.append({"id": str(uuid.uuid4()), "title": f"覆盖率: {metadata['coverage']}"})
+            attached.append({"id": str(uuid.uuid4()), "class": "topic", "title": f"覆盖率: {metadata['coverage']}"})
 
         return {
             "id": summary_id,
+            "class": "topic",
             "title": "统计信息",
             "children": {
                 "attached": attached
             }
         }
 
-    def _build_metadata_json(self, metadata: Dict[str, Any], version: str = "8") -> Dict[str, Any]:
-        if version == "2023":
-            return {
-                "creator": {
-                    "name": "AITestCraft",
-                    "version": "1.0.0"
-                },
-                "created": datetime.now().isoformat() + "Z",
-                "modified": datetime.now().isoformat() + "Z",
-                "sheet": {
-                    "id": str(uuid.uuid4()),
-                    "title": metadata.get("requirement", "测试用例")
-                }
-            }
+    def _build_metadata_json(self) -> Dict[str, Any]:
         return {
+            "dataStructureVersion": "2",
             "creator": {
                 "name": "AITestCraft",
                 "version": "1.0.0"
             },
-            "created": datetime.now().isoformat() + "Z",
-            "modified": datetime.now().isoformat() + "Z"
+            "layoutEngineVersion": "3"
         }
 
-    def _build_manifest(self) -> str:
-        return '''<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <file-entry full-path="content.json" media-type="application/json"/>
-  <file-entry full-path="metadata.json" media-type="application/json"/>
-  <file-entry full-path="META-INF/manifest.xml" media-type="text/xml"/>
-</manifest>'''
-
-    def _build_manifest_2023(self) -> str:
-        return '''<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <file-entry full-path="content.json" media-type="application/json"/>
-  <file-entry full-path="metadata.json" media-type="application/json"/>
-  <file-entry full-path="META-INF/manifest.xml" media-type="text/xml"/>
-  <file-entry full-path="thumbnail/thumbnail.png" media-type="image/png"/>
-</manifest>'''
-
-    def _build_empty_thumbnail(self) -> bytes:
-        return b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+    def _build_manifest_json(self) -> Dict[str, Any]:
+        return {
+            "file-entries": {
+                "content.json": {},
+                "metadata.json": {},
+                "manifest.json": {}
+            }
+        }
 
     def _group_by_priority(self, testcases: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
         groups: Dict[str, List[Dict[str, Any]]] = {}
