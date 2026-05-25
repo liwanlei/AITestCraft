@@ -1,67 +1,108 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""工具模块单元测试"""
-import json
 import unittest
-from unittest.mock import Mock, patch, MagicMock
 
-from utils.exceptions import TaskNotFoundError, DatabaseError, JSONParseError
+from utils.exceptions import TaskNotFoundError, DatabaseError, JSONParseError, SchemaValidationError
+from utils.json_utils import safe_loads, parse_markdown_table, validate_schema
 from utils.logger import logger
 
 
-class TestJsonUtils(unittest.TestCase):
-    """JSON 工具函数测试"""
+class TestSafeLoads(unittest.TestCase):
 
-    def test_json_dumps_basic(self):
-        """测试 JSON 序列化"""
-        data = {"key": "value", "number": 123}
-        result = json.dumps(data)
-        self.assertIsInstance(result, str)
-        self.assertIn('"key": "value"', result)
+    def test_valid_json_object(self):
+        result = safe_loads('{"key": "value"}')
+        self.assertEqual(result, {"key": "value"})
 
-    def test_json_loads_basic(self):
-        """测试 JSON 反序列化"""
-        json_str = '{"key": "value", "number": 123}'
-        result = json.loads(json_str)
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result["key"], "value")
-        self.assertEqual(result["number"], 123)
+    def test_valid_json_array(self):
+        result = safe_loads('[1, 2, 3]')
+        self.assertEqual(result, [1, 2, 3])
 
-    def test_json_loads_invalid(self):
-        """测试无效 JSON"""
-        try:
-            json.loads("invalid json")
-            self.fail("应该抛出异常")
-        except json.JSONDecodeError:
-            pass
+    def test_json_with_markdown_fence(self):
+        result = safe_loads('```json\n{"key": "value"}\n```')
+        self.assertEqual(result, {"key": "value"})
 
-    def test_json_dumps_with_special_chars(self):
-        """测试特殊字符序列化"""
-        data = {"content": 'test "quotes" and \n newlines'}
-        result = json.dumps(data)
-        loaded = json.loads(result)
-        self.assertEqual(loaded["content"], data["content"])
+    def test_json_with_prefix_text(self):
+        result = safe_loads('Here is the JSON: {"key": "value"}')
+        self.assertEqual(result, {"key": "value"})
+
+    def test_invalid_json_raises(self):
+        with self.assertRaises(JSONParseError):
+            safe_loads("not json at all {{{")
+
+    def test_single_quotes_repair(self):
+        result = safe_loads("{'key': 'value'}")
+        self.assertEqual(result, {"key": "value"})
+
+    def test_trailing_comma_repair(self):
+        result = safe_loads('{"key": "value",}')
+        self.assertEqual(result, {"key": "value"})
+
+
+class TestParseMarkdownTable(unittest.TestCase):
+
+    def test_basic_table(self):
+        text = "| 用例名称 | 优先级 |\n| --- | --- |\n| 登录测试 | P0 |"
+        result = parse_markdown_table(text)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["用例名称"], "登录测试")
+
+    def test_empty_input(self):
+        result = parse_markdown_table("")
+        self.assertEqual(result, [])
+
+    def test_none_input(self):
+        result = parse_markdown_table(None)
+        self.assertEqual(result, [])
+
+    def test_table_with_module_header(self):
+        text = "### 登录模块\n| 用例名称 | 优先级 |\n| --- | --- |\n| 登录测试 | P0 |"
+        result = parse_markdown_table(text)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].get("module", ""), "登录模块")
+
+
+class TestValidateSchema(unittest.TestCase):
+
+    def test_valid_schema(self):
+        data = {"name": "test", "age": 25}
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "age": {"type": "integer"}
+            },
+            "required": ["name"]
+        }
+        validate_schema(data, schema)
+
+    def test_invalid_schema_raises(self):
+        data = {"name": 123}
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"}
+            },
+            "required": ["name"]
+        }
+        with self.assertRaises(SchemaValidationError):
+            validate_schema(data, schema)
 
 
 class TestExceptions(unittest.TestCase):
-    """异常类测试"""
 
     def test_task_not_found_error(self):
-        """测试任务未找到异常"""
         try:
             raise TaskNotFoundError("任务不存在")
         except TaskNotFoundError as e:
             self.assertEqual(str(e), "任务不存在")
 
     def test_database_error(self):
-        """测试数据库异常"""
         try:
             raise DatabaseError("数据库错误")
         except DatabaseError as e:
             self.assertEqual(str(e), "数据库错误")
 
     def test_json_parse_error(self):
-        """测试 JSON 解析异常"""
         try:
             raise JSONParseError("JSON 解析失败")
         except JSONParseError as e:
@@ -69,16 +110,12 @@ class TestExceptions(unittest.TestCase):
 
 
 class TestLogger(unittest.TestCase):
-    """日志工具测试"""
 
     def test_logger_exists(self):
-        """测试日志器存在"""
         self.assertIsNotNone(logger)
         self.assertEqual(logger.name, "AITestCraft")
 
     def test_logger_methods(self):
-        """测试日志方法调用"""
-        # 这些方法应该正常执行不抛异常
         logger.debug("debug message")
         logger.info("info message")
         logger.warning("warning message")

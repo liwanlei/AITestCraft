@@ -1,28 +1,40 @@
 # -*- coding: utf-8 -*-
-import json
-import os
-from datetime import datetime
-from pathlib import Path
+import re
 from typing import Optional
 
 from fastapi import APIRouter, Request, status, HTTPException, File, UploadFile, Form
 
-from api.schemas import TaskResponse, StatusResponse, ResultResponse, LogResponse, MultiFormatResult, XMindFormats
+from api.schemas import TaskResponse, StatusResponse, ResultResponse, LogResponse
 from api.services.content_resolver import resolve_file_content, resolve_doc_content
 from api.services.task_service import process_task
-from formatters import MarkdownFormatter, XMindFormatter
+from api.services.result_service import build_result
 from storage.repositories import get_task, get_logs
 from utils.exceptions import TaskNotFoundError
-from utils.json_utils import parse_markdown_table
 from utils.logger import logger
 
 router = APIRouter()
 
-markdown_formatter = MarkdownFormatter()
-xmind_formatter = XMindFormatter()
+# UUID 格式验证正则（允许标准 UUID 和短格式）
+UUID_PATTERN = re.compile(r'^[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{12}$', re.IGNORECASE)
 
-# 结果文件存储目录
-RESULT_DIR = Path("result")
+
+def validate_task_id(task_id: str) -> str:
+    """验证 task_id 格式，防止路径遍历攻击"""
+    if not task_id or not isinstance(task_id, str):
+        raise HTTPException(status_code=400, detail="无效的任务 ID")
+    
+    # 验证 UUID 格式
+    if not UUID_PATTERN.match(task_id):
+        raise HTTPException(status_code=400, detail="任务 ID 格式无效")
+    
+    # 清理路径字符（双重防护）
+    safe_id = task_id.replace("..", "").replace("/", "").replace("\\", "")
+    
+    # 确保清理后仍然匹配 UUID 格式
+    if safe_id != task_id:
+        raise HTTPException(status_code=400, detail="任务 ID 包含非法字符")
+    
+    return safe_id
 
 
 @router.post(
@@ -76,6 +88,7 @@ async def run_task(
 )
 async def get_status(task_id: str) -> dict:
     logger.info(f"查询任务状态: {task_id}")
+    task_id = validate_task_id(task_id)
     try:
         task = get_task(task_id)
         logger.info(f"任务状态查询成功: {task_id} -> {task['status']}")
@@ -99,6 +112,7 @@ async def get_status(task_id: str) -> dict:
 )
 async def get_result(task_id: str) -> dict:
     logger.info(f"查询任务结果: {task_id}...")
+    task_id = validate_task_id(task_id)
     try:
         task = get_task(task_id)
         logger.info(f"任务结果查询成功: {task_id[:8]}...")
@@ -106,140 +120,7 @@ async def get_result(task_id: str) -> dict:
         logger.warning(f"任务不存在: {task_id[:8]}...")
         raise HTTPException(status_code=404, detail="任务不存在")
 
-    # 检查任务状态
-    task_status = task.get("status", "")
-    if task_status == "running":
-        return {"result": None, "message": "任务执行中", "status": "running"}
-    elif task_status == "pending":
-        return {"result": None, "message": "任务等待执行", "status": "pending"}
-    elif task_status == "failed":
-        return {"result": None, "message": "任务执行失败", "status": "failed"}
-
-    result_data = json.loads(task["result"]) if task["result"] else None
-    if result_data is None:
-        return {"result": None, "message": "任务无结果", "status": task_status}
-
-    # 兼容多种格式：列表、字典、Markdown 表格字符串
-    if isinstance(result_data, list):
-        testcases = result_data
-        coverage = 0
-    elif isinstance(result_data, dict):
-        testcases = result_data.get("testcases", [])
-        coverage = result_data.get("coverage", 0)
-    elif isinstance(result_data, str):
-        if result_data.strip().startswith("|"):
-            testcases = parse_markdown_table(result_data)
-            logger.info(f"将 Markdown 表格转换为 JSON，共 {len(testcases)} 条用例")
-            coverage = 0
-        else:
-            testcases = []
-            coverage = 0
-    else:
-        testcases = []
-        coverage = 0
-
-    metadata = {
-        "title": "测试用例文档",
-        "requirement": task.get("task", ""),
-        "generated_at": datetime.now().strftime("%Y-%m-%d"),
-        "total_count": len(testcases),
-        "coverage": coverage
-    }
-
-    try:
-        markdown_content = markdown_formatter.format(testcases, metadata)
-    except Exception as e:
-        logger.error(f"Markdown 格式化失败: {e}")
-        markdown_content = ""
-
-    try:
-        xmind_8_bytes = xmind_formatter.format_8(testcases, metadata)
-    except Exception as e:
-        logger.error(f"XMind 8 格式化失败: {e}")
-        xmind_8_bytes = b""
-        xmind_8_failed = True
-    else:
-        xmind_8_failed = False
-
-    try:
-        xmind_2023_bytes = xmind_formatter.format_2023(testcases, metadata)
-    except Exception as e:
-        logger.error(f"XMind 2023 格式化失败: {e}")
-        xmind_2023_bytes = b""
-        xmind_2023_failed = True
-    else:
-        xmind_2023_failed = False
-
-    # 确保结果目录存在
-    RESULT_DIR.mkdir(parents=True, exist_ok=True)
-
-    # 定义文件名（使用 task_id）
-    json_path = RESULT_DIR / f"{task_id}.json"
-    md_path = RESULT_DIR / f"{task_id}.md"
-    xmind_8_path = RESULT_DIR / f"{task_id}_xmind8.xmind"
-    xmind_2023_path = RESULT_DIR / f"{task_id}_xmind2023.xmind"
-
-    # 保存 JSON 文件
-    try:
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(result_data, f, ensure_ascii=False, indent=2)
-        logger.info(f"JSON 文件已保存: {json_path}")
-    except Exception as e:
-        logger.error(f"保存 JSON 文件失败: {e}")
-        json_path = None
-
-    # 保存 Markdown 文件
-    try:
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(markdown_content)
-        logger.info(f"Markdown 文件已保存: {md_path}")
-    except Exception as e:
-        logger.error(f"保存 Markdown 文件失败: {e}")
-        md_path = None
-
-    # 保存 XMind 8 文件
-    try:
-        with open(xmind_8_path, "wb") as f:
-            f.write(xmind_8_bytes)
-        logger.info(f"XMind 8 文件已保存: {xmind_8_path}")
-    except Exception as e:
-        logger.error(f"保存 XMind 8 文件失败: {e}")
-        xmind_8_path = None
-
-    # 保存 XMind 2023 文件
-    try:
-        with open(xmind_2023_path, "wb") as f:
-            f.write(xmind_2023_bytes)
-        logger.info(f"XMind 2023 文件已保存: {xmind_2023_path}")
-    except Exception as e:
-        logger.error(f"保存 XMind 2023 文件失败: {e}")
-        xmind_2023_path = None
-
-    xmind_formats = XMindFormats(
-        xmind_8=xmind_formatter.encode_base64(xmind_8_bytes),
-        xmind_2023=xmind_formatter.encode_base64(xmind_2023_bytes),
-        xmind_8_filename=f"{task_id}_xmind8.xmind",
-        xmind_2023_filename=f"{task_id}_xmind2023.xmind"
-    )
-
-    multi_format_result = MultiFormatResult(
-        json=result_data,
-        markdown=markdown_content,
-        xmind=xmind_formats
-    )
-
-    result = {
-        "result": multi_format_result,
-        "files": {
-            "json": str(json_path) if json_path else None,
-            "markdown": str(md_path) if md_path else None,
-            "xmind_8": str(xmind_8_path) if xmind_8_path else None,
-            "xmind_2023": str(xmind_2023_path) if xmind_2023_path else None
-        }
-    }
-
-    logger.info(f"返回多格式结果，Markdown: {len(markdown_content)} 字符，XMind: {len(xmind_8_bytes)} 字节")
-    return result
+    return build_result(task)
 
 
 @router.get(
@@ -249,6 +130,7 @@ async def get_result(task_id: str) -> dict:
 )
 async def get_task_logs(task_id: str) -> dict:
     logger.info(f"查询任务日志: {task_id}")
+    task_id = validate_task_id(task_id)
     try:
         get_task(task_id)
         logger.info(f"任务存在检查成功: {task_id}")

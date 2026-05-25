@@ -74,8 +74,50 @@ def block_to_markdown(block: dict) -> str:
         text = _extract_text(todo.get("elements", []))
         checked = "x" if todo.get("style", 0) == 1 else " "
         return f"- [{checked}] {text}"
-    if block_type in (_BLOCK_TYPE_DIVIDER, _BLOCK_TYPE_TABLE):
-        return ""
+    if block_type == _BLOCK_TYPE_TABLE:
+        table_block = block.get("table", {})
+        rows = table_block.get("rows", [])
+        if not rows:
+            property_table = block.get("property", {}).get("table", {})
+            rows = property_table.get("cells", [])
+            if not rows:
+                return ""
+            merged_rows = []
+            row_count = property_table.get("row_size", 0)
+            col_count = property_table.get("column_size", 0)
+            if row_count > 0 and col_count > 0:
+                for r in range(row_count):
+                    row_cells = []
+                    for c in range(col_count):
+                        idx = r * col_count + c
+                        if idx < len(rows):
+                            cell_block = rows[idx]
+                            if isinstance(cell_block, dict):
+                                cell_text = _extract_text(cell_block.get("paragraph", {}).get("elements", []))
+                            else:
+                                cell_text = str(cell_block)
+                            row_cells.append(cell_text)
+                        else:
+                            row_cells.append("")
+                    merged_rows.append(row_cells)
+                rows = merged_rows
+        if not rows:
+            return ""
+        lines = []
+        for i, row in enumerate(rows):
+            if isinstance(row, dict):
+                cells = row.get("cells", [])
+                cell_texts = [_extract_text(cell.get("paragraph", {}).get("elements", [])) for cell in cells]
+            elif isinstance(row, list):
+                cell_texts = row
+            else:
+                continue
+            lines.append("| " + " | ".join(cell_texts) + " |")
+            if i == 0:
+                lines.append("| " + " | ".join(["---"] * len(cell_texts)) + " |")
+        return "\n".join(lines)
+    if block_type == _BLOCK_TYPE_DIVIDER:
+        return "---"
 
     logger.debug(f"未处理的飞书块类型: {block_type}")
     return ""

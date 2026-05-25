@@ -22,7 +22,6 @@ class TestMarkdownFormatter(unittest.TestCase):
                 "module": "用户模块",
                 "precondition": "用户已注册",
                 "steps": ["输入用户名", "输入密码", "点击登录"],
-                "expected": "登录成功，跳转到首页",
                 "assert": ["登录成功", "跳转到首页"],
                 "coverage": "功能覆盖"
             },
@@ -33,7 +32,6 @@ class TestMarkdownFormatter(unittest.TestCase):
                 "module": "用户模块",
                 "precondition": "用户已注册",
                 "steps": ["输入用户名", "输入错误密码", "点击登录"],
-                "expected": "提示密码错误",
                 "assert": ["提示密码错误"],
                 "coverage": "异常覆盖"
             }
@@ -89,7 +87,6 @@ class TestXMindFormatter(unittest.TestCase):
                 "module": "用户模块",
                 "precondition": "用户已注册",
                 "steps": ["输入用户名", "输入密码", "点击登录"],
-                "expected": "登录成功，跳转到首页",
                 "assert": ["登录成功"],
                 "coverage": "功能覆盖"
             }

@@ -29,6 +29,19 @@ def _get_env_str(name: str, default: str) -> str:
 
 
 class Config:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if hasattr(self, "_initialized"):
+            return
+        self._initialized = True
+        self.ensure_dirs()
+
     BASE_DIR: Path = Path(__file__).parent.parent
     SKILLS_DIR: Path = BASE_DIR / "skills"
     LOGS_DIR: Path = BASE_DIR / "logs"
@@ -37,8 +50,9 @@ class Config:
     SERVER_HOST: str = os.getenv("SERVER_HOST", "0.0.0.0")
     SERVER_PORT: int = _get_env_int("SERVER_PORT", 8001)
 
-    NODE_MAX_RETRY: int = 3
-    RETRY_MAX_RETRIES: int = 3
+    RETRY_MAX_RETRIES: int = _get_env_int("RETRY_MAX_RETRIES", 3)
+    NODE_MAX_RETRY = RETRY_MAX_RETRIES
+
     MODEL_SETTINGS: Dict = {"seed": 40, "top_p": 1, "temperature": 0}
 
     NODE_MODEL_SETTINGS: Dict[str, Dict] = {
@@ -54,8 +68,9 @@ class Config:
 
     AGENT_TIMEOUT_SECONDS: int = _get_env_int("AGENT_TIMEOUT_SECONDS", 1000)
 
+    MODULE_SPLIT_THRESHOLD: int = _get_env_int("MODULE_SPLIT_THRESHOLD", 3)
+
     LOG_TASK_ID_LENGTH: int = _get_env_int("LOG_TASK_ID_LENGTH", 8)
-    LOG_FILE_NAME: str = _get_env_str("LOG_FILE_NAME", "AITestCraft.log")
     LOG_LEVEL: str = _get_env_str("LOG_LEVEL", "INFO").upper()
     LOG_CONSOLE_LEVEL: str = _get_env_str("LOG_CONSOLE_LEVEL", "INFO").upper()
     LOG_FILE_LEVEL: str = _get_env_str("LOG_FILE_LEVEL", "DEBUG").upper()
@@ -63,11 +78,11 @@ class Config:
     SKILL_NAMES: Dict[str, str] = {
         "requirement": "requirement-parser",
         "testpoint": "testpoint-extractor",
-        "dedup": "testpoint-deduplicator",
         "testcase": "testcase-generator",
         "review": "testcase-reviewer",
         "coverage": "testcase-coverage",
         "gap": "gap-filler",
+        "aggregator": "module-aggregator",
     }
 
     CORS_ORIGINS: List[str] = _get_env_list("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080")
@@ -102,19 +117,22 @@ class Config:
     CONFLUENCE_EMAIL: str = _get_env_str("CONFLUENCE_EMAIL", "")
     CONFLUENCE_API_TOKEN: str = _get_env_str("CONFLUENCE_API_TOKEN", "")
 
-    @classmethod
-    def ensure_dirs(cls) -> None:
+    SENSITIVE_KEYS = frozenset([
+        "FEISHU_USER_ACCESS_TOKEN", "TAPD_API_PASSWORD", "TAPD_API_USER",
+        "YUQUE_API_TOKEN", "SHIMO_CLIENT_SECRET", "SHIMO_API_TOKEN",
+        "CONFLUENCE_API_TOKEN", "CONFLUENCE_EMAIL",
+    ])
+
+    def ensure_dirs(self) -> None:
+        cls = self if isinstance(self, type) else self.__class__
         cls.LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
-    @classmethod
-    def validate(cls) -> None:
+    def validate(self) -> None:
         errors = []
+        cls = self if isinstance(self, type) else self.__class__
 
         if cls.SERVER_PORT < 1 or cls.SERVER_PORT > 65535:
             errors.append(f"SERVER_PORT 必须在 1-65535 范围内，当前值: {cls.SERVER_PORT}")
-
-        if cls.NODE_MAX_RETRY < 0:
-            errors.append(f"NODE_MAX_RETRY 不能为负数，当前值: {cls.NODE_MAX_RETRY}")
 
         if cls.RETRY_MAX_RETRIES < 0:
             errors.append(f"RETRY_MAX_RETRIES 不能为负数，当前值: {cls.RETRY_MAX_RETRIES}")
@@ -141,5 +159,24 @@ class Config:
 
         logger.info("配置验证通过")
 
+    def safe_repr(self) -> Dict:
+        result = {}
+        cls = self if isinstance(self, type) else self.__class__
+        for key in dir(cls):
+            if key.startswith("_") or key in ("SENSITIVE_KEYS", "ensure_dirs", "validate", "safe_repr"):
+                continue
+            value = getattr(cls, key)
+            if callable(value):
+                continue
+            if key in self.SENSITIVE_KEYS:
+                result[key] = "***" if value else ""
+            else:
+                result[key] = value
+        return result
 
-Config.ensure_dirs()
+
+Config.ensure_dirs = classmethod(Config.ensure_dirs)
+Config.validate = classmethod(Config.validate)
+Config.safe_repr = classmethod(Config.safe_repr)
+
+_config_singleton = Config()

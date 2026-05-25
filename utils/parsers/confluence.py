@@ -17,6 +17,11 @@ class _HtmlToMarkdownConverter(HTMLParser):
         self._result: list[str] = []
         self._tag_stack: list[str] = []
         self._list_counter: list[int] = []
+        self._current_href: str = ""
+        self._in_table: bool = False
+        self._table_rows: list[list[str]] = []
+        self._current_row: list[str] = []
+        self._in_cell: bool = False
 
     def handle_starttag(self, tag, attrs):
         self._tag_stack.append(tag)
@@ -47,9 +52,28 @@ class _HtmlToMarkdownConverter(HTMLParser):
         elif tag == "ol":
             self._list_counter.append(1)
         elif tag == "a":
-            href = dict(attrs).get("href", "")
-            if href:
-                self._result.append("[")
+            self._current_href = dict(attrs).get("href", "")
+            self._result.append("[")
+        elif tag == "table":
+            self._in_table = True
+            self._table_rows = []
+        elif tag == "tr":
+            self._current_row = []
+        elif tag in ("td", "th"):
+            self._in_cell = True
+            self._current_row.append("")
+        elif tag == "img":
+            src = dict(attrs).get("src", "")
+            alt = dict(attrs).get("alt", "")
+            if alt:
+                self._result.append(f"![{alt}]({src})")
+            else:
+                self._result.append(f"![]({src})")
+        elif tag in ("video", "iframe", "embed"):
+            src = dict(attrs).get("src", "")
+            self._result.append(f"[媒体内容]({src})")
+        else:
+            logger.debug(f"Confluence HTMLParser: 未处理的开始标签 <{tag}>")
 
     def handle_endtag(self, tag):
         if self._tag_stack and self._tag_stack[-1] == tag:
@@ -64,6 +88,9 @@ class _HtmlToMarkdownConverter(HTMLParser):
             self._result.append("\n```")
         elif tag == "a":
             self._result.append("]")
+            if self._current_href:
+                self._result.append(f"({self._current_href})")
+                self._current_href = ""
         elif tag in ("ul", "ol"):
             if self._list_counter:
                 self._list_counter.pop()
@@ -71,9 +98,31 @@ class _HtmlToMarkdownConverter(HTMLParser):
             self._result.append("\n")
         elif tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
             self._result.append("\n")
+        elif tag in ("td", "th"):
+            self._in_cell = False
+        elif tag == "tr":
+            if self._current_row:
+                self._table_rows.append(self._current_row)
+            self._current_row = []
+        elif tag == "table":
+            self._in_table = False
+            if self._table_rows:
+                self._result.append("\n")
+                for i, row in enumerate(self._table_rows):
+                    self._result.append("| " + " | ".join(v.strip() for v in row) + " |\n")
+                    if i == 0:
+                        self._result.append("| " + " | ".join(["---"] * len(row)) + " |\n")
+            self._table_rows = []
+            self._current_row = []
 
     def handle_data(self, data):
-        self._result.append(data)
+        if self._in_cell:
+            if self._current_row:
+                self._current_row[-1] += data
+            else:
+                self._current_row.append(data)
+        else:
+            self._result.append(data)
 
     def get_markdown(self) -> str:
         text = "".join(self._result)

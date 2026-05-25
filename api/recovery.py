@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
-"""任务中断恢复模块"""
 import asyncio
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 
 from storage.repositories import get_tasks_by_status, update_task, get_last_completed_node
-from api.services.task_service import recover_task
 from utils.logger import logger
 from config.config import Config
+
+_background_tasks: Set[asyncio.Task] = set()
+
+
+def _create_tracked_task(coro) -> asyncio.Task:
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+    return task
 
 
 async def recover_interrupted_tasks(max_recover: int = None) -> int:
@@ -47,6 +54,7 @@ async def recover_interrupted_tasks(max_recover: int = None) -> int:
             
             # 获取最后一个完成的节点
             last_node = get_last_completed_node(task_id)
+            use_checkpoint = bool(last_node)
             if last_node:
                 logger.info(f"任务 {task_id[:8]} 将从节点 [{last_node}] 的后续节点恢复")
             else:
@@ -55,8 +63,8 @@ async def recover_interrupted_tasks(max_recover: int = None) -> int:
             # 将任务状态更新为 running
             update_task(task_id, status="running")
             
-            # 异步执行任务（从断点恢复）
-            asyncio.create_task(recover_task(task_id, task_content, from_checkpoint=True))
+            from api.services.task_service import recover_task
+            _create_tracked_task(recover_task(task_id, task_content, from_checkpoint=use_checkpoint))
             
             recovered_count += 1
             logger.info(f"任务已入队恢复: {task_id[:8]}...")

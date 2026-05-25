@@ -14,6 +14,13 @@ _FEISHU_BITABLE_PATTERN = re.compile(r"feishu\.cn/base/([A-Za-z0-9]+)")
 _FEISHU_API_BASE = "https://open.feishu.cn/open-apis"
 
 
+def _mask_token(token: str, show_chars: int = 6) -> str:
+    """脱敏 token，只显示前几个字符"""
+    if not token or len(token) <= show_chars:
+        return "***"
+    return f"{token[:show_chars]}..."
+
+
 def _check_support() -> None:
     from config.config import Config
     if not Config.FEISHU_USER_ACCESS_TOKEN:
@@ -60,7 +67,7 @@ async def _feishu_get(path: str, params: Optional[dict] = None) -> dict:
 
 
 async def _parse_feishu_doc(token: str) -> str:
-    logger.info(f"解析飞书文档: {token}")
+    logger.info(f"解析飞书文档: {_mask_token(token)}")
     
     all_items = []
     page_token = None
@@ -95,12 +102,12 @@ async def _parse_feishu_doc(token: str) -> str:
             lines.append(md)
 
     text = "\n\n".join(lines)
-    logger.info(f"飞书文档解析完成: {token}, {len(text)} 字符, 共 {page_count} 页")
+    logger.info(f"飞书文档解析完成: {_mask_token(token)}, {len(text)} 字符, 共 {page_count} 页")
     return text
 
 
 async def _parse_feishu_wiki(token: str) -> str:
-    logger.info(f"解析飞书知识库文档: {token}")
+    logger.info(f"解析飞书知识库文档: {_mask_token(token)}")
     data = await _feishu_get("/wiki/v2/spaces/get_node", params={"token": token})
     node = data.get("data", {}).get("node", {})
     obj_type = node.get("obj_type", "")
@@ -113,7 +120,7 @@ async def _parse_feishu_wiki(token: str) -> str:
         doc_data = await _feishu_get(f"/doc/v2/{obj_token}", params={"lang": "zh"})
         content = doc_data.get("data", {}).get("content", "")
         if content:
-            logger.info(f"飞书旧版文档解析完成: {token}, {len(content)} 字符")
+            logger.info(f"飞书旧版文档解析完成: {_mask_token(token)}, {len(content)} 字符")
             return content
         logger.warning(f"飞书旧版文档 {token} 无内容")
         return ""
@@ -123,7 +130,7 @@ async def _parse_feishu_wiki(token: str) -> str:
 
 
 async def _parse_feishu_bitable(token: str) -> str:
-    logger.info(f"解析飞书多维表格: {token}")
+    logger.info(f"解析飞书多维表格: {_mask_token(token)}")
     tables_data = await _feishu_get(f"/bitable/v1/apps/{token}/tables")
     tables = tables_data.get("data", {}).get("items", [])
     if not tables:
@@ -164,7 +171,7 @@ async def _parse_feishu_bitable(token: str) -> str:
         parts.append("")
 
     text = "\n".join(parts)
-    logger.info(f"飞书多维表格解析完成: {token}, {len(text)} 字符")
+    logger.info(f"飞书多维表格解析完成: {_mask_token(token)}, {len(text)} 字符")
     return text
 
 
@@ -176,7 +183,7 @@ async def parse_feishu_url(url: str) -> str:
     if not link_type:
         raise ValueError(f"不支持的飞书链接格式: {url}")
 
-    logger.info(f"飞书链接类型: {link_type}, token: {token}")
+    logger.info(f"飞书链接类型: {link_type}, token: {_mask_token(token)}")
 
     if link_type == "doc":
         return await _parse_feishu_doc(token)

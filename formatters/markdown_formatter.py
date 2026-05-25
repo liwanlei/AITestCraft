@@ -29,6 +29,10 @@ class MarkdownFormatter(BaseFormatter):
         lines.append(f"- **总计用例**: {len(testcases)} 条")
         lines.append("")
 
+        module_groups = self._group_by_module(testcases)
+        if module_groups and len(module_groups) > 1:
+            return self._format_by_module(testcases, meta, module_groups)
+
         priority_groups = self._group_by_priority(testcases)
 
         for priority in ["P0", "P1", "P2"]:
@@ -88,14 +92,53 @@ class MarkdownFormatter(BaseFormatter):
 
         return "\n".join(lines)
 
-    def _group_by_priority(self, testcases: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
-        groups: Dict[str, List[Dict[str, Any]]] = {}
-        for case in testcases:
-            priority = case.get("priority", "P2")
-            if priority not in groups:
-                groups[priority] = []
-            groups[priority].append(case)
-        return groups
+    def _format_by_module(self, testcases: List[Dict[str, Any]], meta: Dict[str, Any], module_groups: Dict[str, List[Dict[str, Any]]]) -> str:
+        lines = []
+        lines.append("# 测试用例文档")
+        lines.append("")
+        lines.append("## 项目概述")
+        lines.append(f"- **需求**: {meta['requirement'] or '未指定'}")
+        lines.append(f"- **生成时间**: {meta['generated_at'] or datetime.now().strftime('%Y-%m-%d')}")
+        lines.append(f"- **总计用例**: {len(testcases)} 条")
+        lines.append(f"- **模块数**: {len(module_groups)}")
+        lines.append("")
+
+        p0_total = 0
+        p1_total = 0
+        p2_total = 0
+
+        for module_name, cases in module_groups.items():
+            lines.append("---")
+            lines.append("")
+            lines.append(f"## 模块: {module_name}")
+            lines.append(f"- **用例数**: {len(cases)}")
+            lines.append("")
+            lines.append(self._format_table(cases))
+            lines.append("")
+
+            for c in cases:
+                p = c.get("priority", "P2")
+                if p == "P0":
+                    p0_total += 1
+                elif p == "P1":
+                    p1_total += 1
+                else:
+                    p2_total += 1
+
+        lines.append("---")
+        lines.append("")
+        lines.append("## 用例统计")
+        lines.append("")
+        lines.append("| 模块 | P0 | P1 | P2 | 总计 |")
+        lines.append("|------|----|----|----|----|")
+        for module_name, cases in module_groups.items():
+            p0 = len([c for c in cases if c.get("priority", "") == "P0"])
+            p1 = len([c for c in cases if c.get("priority", "") == "P1"])
+            p2 = len([c for c in cases if c.get("priority", "") == "P2"])
+            lines.append(f"| {module_name} | {p0} | {p1} | {p2} | {len(cases)} |")
+        lines.append(f"| **总计** | **{p0_total}** | **{p1_total}** | **{p2_total}** | **{len(testcases)}** |")
+
+        return "\n".join(lines)
 
     def _format_empty(self, metadata: Optional[Dict[str, Any]] = None) -> str:
         meta = self._build_metadata(metadata)

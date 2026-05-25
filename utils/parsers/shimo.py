@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import threading
 import time
 from typing import Optional
 
@@ -12,6 +13,7 @@ _SHIMO_API_BASE = "https://open.shimo.im"
 
 _cached_token: Optional[str] = None
 _token_expires_at: float = 0.0
+_token_lock = threading.Lock()
 
 
 def _check_support() -> None:
@@ -27,9 +29,10 @@ async def _get_access_token() -> str:
     if Config.SHIMO_API_TOKEN:
         return Config.SHIMO_API_TOKEN
 
-    now = time.time()
-    if _cached_token and now < _token_expires_at:
-        return _cached_token
+    with _token_lock:
+        now = time.time()
+        if _cached_token and now < _token_expires_at:
+            return _cached_token
 
     resp = await async_post(
         f"{_SHIMO_API_BASE}/oauth2/token",
@@ -47,9 +50,10 @@ async def _get_access_token() -> str:
     if not token:
         raise PermissionError("石墨认证失败: 未获取到 access_token")
 
-    _cached_token = token
-    expires_in = max(data.get("expires_in", 7200), 60)  # 确保至少 60 秒有效期
-    _token_expires_at = now + expires_in - 60
+    with _token_lock:
+        _cached_token = token
+        expires_in = max(data.get("expires_in", 7200), 60)
+        _token_expires_at = time.time() + expires_in - 60
 
     return token
 

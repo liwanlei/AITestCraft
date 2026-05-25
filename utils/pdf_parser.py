@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
+import threading
 from typing import Optional
 
 from utils.logger import logger
@@ -11,6 +12,7 @@ except ImportError:
     HAS_PYMUPDF = False
 
 _ocr_client = None
+_ocr_lock = threading.Lock()
 
 
 def check_pdf_support() -> None:
@@ -20,10 +22,11 @@ def check_pdf_support() -> None:
 
 def _get_ocr_client():
     global _ocr_client
-    if _ocr_client is None:
-        from openai import AsyncOpenAI
-        _ocr_client = AsyncOpenAI()
-    return _ocr_client
+    with _ocr_lock:
+        if _ocr_client is None:
+            from openai import AsyncOpenAI
+            _ocr_client = AsyncOpenAI()
+        return _ocr_client
 
 
 def _extract_page_text(page) -> str:

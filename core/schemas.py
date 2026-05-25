@@ -18,9 +18,11 @@ TESTCASE_SCHEMA = {
             "assert": {
                 "type": "array",
                 "items": {"type": "string"}
-            }
+            },
+            "module": {"type": "string"},
+            "coverage": {"type": "string"}
         },
-        "additionalProperties": False
+        "additionalProperties": True
     }
 }
 

@@ -9,6 +9,7 @@ from storage.repositories import insert_log, update_node_status
 from utils.json_utils import safe_loads, validate_schema
 from utils.logger import logger
 from core.retry import run_with_retry
+from utils.token_utils import extract_usage_info, extract_token_counts
 
 
 class Node:
@@ -96,27 +97,15 @@ class Node:
         
         raw_str = str(raw).strip()
         
-        # 记录完整原始响应，不截断
         self._log_result(task_id, raw_str)
         logger.debug(f"节点 [{self.name}] 原始响应长度: {len(raw_str)}")
-        # 获取 token 使用统计（兼容多种属性名）
-        usage = None
-        for attr_name in ["usage_details", "usage", "model_usage", "token_usage", "usage_info"]:
-            usage = getattr(result, attr_name, None)
-            if usage:
-                break
+        logger.info(f"节点 [{self.name}] 响应长度: {len(raw_str)} 字符")
+        logger.debug(f"节点 [{self.name}] 原始响应前500字符:\n{raw_str[:500]}")
+        usage_info = extract_usage_info(result)
 
         token_usage_data = None
-        if usage:
-            if hasattr(usage, '__dict__'):
-                usage_dict = vars(usage)
-            elif isinstance(usage, dict):
-                usage_dict = usage
-            else:
-                usage_dict = {}
-
-            input_tokens = usage_dict.get("input_token_count", 0) or usage_dict.get("prompt_tokens", 0) or usage_dict.get("input_tokens", 0)
-            output_tokens = usage_dict.get("output_token_count", 0) or usage_dict.get("completion_tokens", 0) or usage_dict.get("output_tokens", 0)
+        if usage_info:
+            input_tokens, output_tokens = extract_token_counts(usage_info)
 
             if input_tokens > 0 or output_tokens > 0:
                 token_usage_data = {

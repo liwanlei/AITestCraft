@@ -3,16 +3,43 @@ import threading
 from typing import Any, Dict, Optional
 
 
-class Context(dict):
+class Context:
+    def __init__(self, initial: Dict[str, Any] = None):
+        self._data: Dict[str, Any] = dict(initial) if initial else {}
+
     def set(self, key: str, value: Any) -> "Context":
-        self[key] = value
+        self._data[key] = value
         return self
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self._data.get(key, default)
+
+    def __getitem__(self, key: str) -> Any:
+        return self._data[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._data[key] = value
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._data
+
+    def __delitem__(self, key: str) -> None:
+        del self._data[key]
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __repr__(self) -> str:
+        return f"Context({self._data!r})"
 
 
 class TokenStats:
     def __init__(self):
         self._nodes: Dict[str, Dict[str, int]] = {}
-        self._node_order: list = []
+        self._node_order: Dict[str, None] = {}
         self.input_tokens: int = 0
         self.output_tokens: int = 0
         self.total_tokens: int = 0
@@ -35,7 +62,7 @@ class TokenStats:
                     "output": 0,
                     "total": 0
                 }
-                self._node_order.append(node_name)
+                self._node_order[node_name] = None
 
             self._nodes[node_name]["input"] += input_tokens
             self._nodes[node_name]["output"] += output_tokens
@@ -49,7 +76,7 @@ class TokenStats:
                     "output": 0,
                     "total": 0
                 }
-                self._node_order.append(node_name)
+                self._node_order[node_name] = None
 
     def get_node_usage(self, node_name: str) -> Optional[Dict[str, int]]:
         with self._lock:

@@ -9,12 +9,16 @@ from agents.prompts import BASE_PROMPT
 
 _client_cache: Dict[str, OpenAIChatClient] = {}
 _cache_lock = threading.Lock()
+_MAX_CACHE_SIZE = 32
 
 
 def _get_client(model_id: Optional[str] = None) -> OpenAIChatClient:
     key = model_id or "__default__"
     with _cache_lock:
         if key not in _client_cache:
+            if len(_client_cache) >= _MAX_CACHE_SIZE:
+                oldest_key = next(iter(_client_cache))
+                del _client_cache[oldest_key]
             _client_cache[key] = OpenAIChatClient(model_id=model_id) if model_id else OpenAIChatClient()
         return _client_cache[key]
 

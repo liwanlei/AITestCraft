@@ -101,12 +101,15 @@ def safe_loads(text: Union[str, Dict, List]) -> Any:
             return json.loads(bounded_json, strict=False)
         except json.JSONDecodeError as e:
             logger.debug(f"JSON解析: 边界检测后解析失败: {e}")
+        skip_original = True
     else:
         logger.debug("JSON解析: 边界检测失败，尝试直接解析")
         bounded_json = candidate
+        skip_original = False
     
-    # 尝试修复常见问题
     for attempt, fix_name in enumerate(["原始", "修复单引号", "修复尾部逗号", "修复转义"]):
+        if attempt == 0 and skip_original:
+            continue
         try_json = bounded_json
         if attempt == 1:
             try_json = try_json.replace("'", '"')
@@ -132,59 +135,74 @@ def safe_loads(text: Union[str, Dict, List]) -> Any:
 
 def parse_markdown_table(text: str) -> List[Dict[str, Any]]:
     """
-    将 Markdown 表格解析为 JSON 数组
+    将 Markdown 表格解析为 JSON 数组，支持多模块表格（### 标题分隔）
     
     Args:
         text: Markdown 格式的表格文本
         
     Returns:
-        JSON 数组，每个元素是一个用例对象
+        JSON 数组，每个元素是一个用例对象，包含 module 字段
     """
     if not text or not isinstance(text, str):
         return []
     
-    lines = text.strip().split("\n")
-    lines = [line.strip() for line in lines if line.strip()]
+    sections = re.split(r'\n(?=###\s)', text.strip())
     
-    if len(lines) < 2:
-        return []
+    all_results = []
+    current_module = ""
     
-    header_line_idx = -1
-    separator_line_idx = -1
-    
-    for i, line in enumerate(lines):
-        if line.startswith("|") and "---" in line:
-            separator_line_idx = i
-            if header_line_idx >= 0:
-                break
-        elif line.startswith("|") and header_line_idx < 0:
-            header_line_idx = i
-    
-    if header_line_idx < 0 or separator_line_idx < 0:
-        return []
-    
-    header_line = lines[header_line_idx]
-    headers = [cell.strip() for cell in header_line.split("|")[1:-1]]
-    
-    result = []
-    for i in range(separator_line_idx + 1, len(lines)):
-        line = lines[i]
-        if not line.startswith("|"):
+    for section in sections:
+        section = section.strip()
+        if not section:
             continue
         
-        cells = [cell.strip() for cell in line.split("|")[1:-1]]
+        module_match = re.match(r'^###\s+(.+?)(?:\s*[（(].+[）)])?\s*$', section, re.MULTILINE)
+        if module_match:
+            current_module = module_match.group(1).strip()
         
-        if len(cells) != len(headers):
+        lines = section.strip().split("\n")
+        lines = [line.strip() for line in lines if line.strip()]
+        
+        header_line_idx = -1
+        separator_line_idx = -1
+        
+        for i, line in enumerate(lines):
+            if line.startswith("|") and "---" in line:
+                separator_line_idx = i
+                if header_line_idx >= 0:
+                    break
+            elif line.startswith("|") and header_line_idx < 0:
+                header_line_idx = i
+        
+        if header_line_idx < 0 or separator_line_idx < 0:
             continue
         
-        row = {}
-        for j, header in enumerate(headers):
-            cell_value = cells[j].replace("<br>", "\n")
-            row[header] = cell_value
+        header_line = lines[header_line_idx]
+        headers = [cell.strip() for cell in header_line.split("|")[1:-1]]
         
-        result.append(row)
+        for i in range(separator_line_idx + 1, len(lines)):
+            line = lines[i]
+            if not line.startswith("|"):
+                continue
+            
+            cells = [cell.strip() for cell in line.split("|")[1:-1]]
+            
+            if len(cells) != len(headers):
+                continue
+            
+            row = {}
+            for j, header in enumerate(headers):
+                cell_value = cells[j].replace("<br>", "\n")
+                row[header] = cell_value
+            
+            if current_module and "模块" not in row:
+                row["module"] = current_module
+            elif current_module and "模块" in row and not row["模块"]:
+                row["模块"] = current_module
+            
+            all_results.append(row)
     
-    return result
+    return all_results
 
 
 def validate_schema(data: Any, schema: Dict) -> Any:

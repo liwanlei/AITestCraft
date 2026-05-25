@@ -92,9 +92,18 @@ class Database:
             with self._pool_lock:
                 if self._connection_pool:
                     conn = self._connection_pool.popleft()
-                    self._active_connections += 1
-                    logger.debug(f"从连接池获取连接，当前池大小: {len(self._connection_pool)}, 活跃: {self._active_connections}")
-                    return conn
+                    try:
+                        conn.execute("SELECT 1")
+                        self._active_connections += 1
+                        logger.debug(f"从连接池获取连接，当前池大小: {len(self._connection_pool)}, 活跃: {self._active_connections}")
+                        return conn
+                    except Exception:
+                        try:
+                            conn.close()
+                        except Exception:
+                            pass
+                        self._active_connections = max(0, self._active_connections - 1)
+                        logger.debug("从池中取出的连接已失效，已关闭")
 
                 if self._active_connections < self._max_connections:
                     conn = self._create_connection()
@@ -132,9 +141,33 @@ class Database:
         with self._pool_lock:
             while self._connection_pool:
                 conn = self._connection_pool.popleft()
-                conn.close()
+                try:
+                    conn.close()
+                except Exception:
+                    pass
             self._active_connections = 0
             logger.info("所有数据库连接已关闭")
+
+    def health_check(self) -> int:
+        removed = 0
+        with self._pool_lock:
+            healthy_pool: Deque[sqlite3.Connection] = deque()
+            while self._connection_pool:
+                conn = self._connection_pool.popleft()
+                try:
+                    conn.execute("SELECT 1")
+                    healthy_pool.append(conn)
+                except Exception:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+                    removed += 1
+                    self._active_connections = max(0, self._active_connections - 1)
+            self._connection_pool = healthy_pool
+        if removed > 0:
+            logger.warning(f"连接池健康检查移除了 {removed} 个失效连接，当前池大小: {len(self._connection_pool)}")
+        return removed
 
     @staticmethod
     def _now() -> str:
