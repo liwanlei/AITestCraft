@@ -27,6 +27,7 @@ class MultiFormatResult(BaseModel):
     json_data: Union[Dict[str, Any], List[Any]] = Field(..., alias="json", description="JSON 格式测试用例（支持字典或列表）")
     markdown: str = Field(..., description="Markdown 格式")
     xmind: XMindFormats = Field(..., description="XMind 格式")
+    kityminder: Optional[Dict[str, Any]] = Field(None, description="KityMinder 脑图 JSON 格式")
 
     class Config:
         populate_by_name = True

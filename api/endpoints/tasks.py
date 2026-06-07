@@ -54,6 +54,7 @@ async def run_task(
     task: Optional[str] = Form(None),
     doc_url: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
+    caseId: Optional[str] = Form(None),
 ) -> dict:
     """提交测试用例生成任务
 
@@ -61,6 +62,9 @@ async def run_task(
     - task: 文本需求
     - doc_url: 文档链接（支持飞书/TAPD/语雀/石墨/Confluence）
     - file: 文件上传（md/txt/pdf）
+
+    可选参数：
+    - caseId: 用例ID，传入后任务完成时会自动调用 saveAiResult 接口回写结果
 
     至少需要提供一个参数。
     """
@@ -78,7 +82,7 @@ async def run_task(
             detail="task、doc_url、file 至少需要提供一个"
         )
 
-    return await process_task(request, task_content)
+    return await process_task(request, task_content, case_id=caseId)
 
 
 @router.get(

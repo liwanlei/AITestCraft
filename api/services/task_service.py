@@ -1,28 +1,55 @@
 # -*- coding: utf-8 -*-
-import asyncio
+import json
 import uuid
 
+import httpx
 from fastapi import Request
 
 from config.config import Config
 from core.taskexecution import taskexecution
-from storage.repositories import get_task, insert_log, update_task, create_task, get_last_completed_node
+from storage.repositories import insert_log, update_task, create_task, get_last_completed_node
 from utils.logger import logger
-
 
 from api.recovery import _create_tracked_task
 
 
-async def process_task(request: Request, task_content: str) -> dict:
+async def process_task(request: Request, task_content: str, case_id: str = None) -> dict:
     task_id = str(uuid.uuid4())
     logger.info(f"创建任务: {task_id}")
     create_task(task_id, task_content)
-    _create_tracked_task(_execute_task_with_retry(task_id, task_content))
+    _create_tracked_task(_execute_task_with_retry(task_id, task_content, case_id=case_id))
 
     return {"task_id": task_id}
 
 
-async def _execute_task_with_retry(task_id: str, task: str, from_checkpoint: bool = False, is_recovery: bool = False) -> None:
+async def _call_save_ai_result(case_id: str, task_id: str, case_content: dict) -> None:
+    """调用 /api/case/saveAiResult 接口回写AI生成的用例"""
+    try:
+        payload = {
+            "caseId": case_id,
+            "taskId": task_id,
+            "caseContent": case_content
+        }
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                Config.SAVE_AI_RESULT_URL,
+                json=payload
+            )
+            if resp.status_code == 200:
+                logger.info(f"saveAiResult 调用成功: caseId={case_id}, taskId={task_id}")
+            else:
+                logger.warning(f"saveAiResult 调用失败: status={resp.status_code}, body={resp.text}")
+    except Exception as e:
+        logger.error(f"saveAiResult 调用异常: caseId={case_id}, error={e}")
+
+
+async def _execute_task_with_retry(
+    task_id: str,
+    task: str,
+    from_checkpoint: bool = False,
+    is_recovery: bool = False,
+    case_id: str = None,
+) -> None:
     max_retries = Config.NODE_MAX_RETRY
     retry_count = 0
 
@@ -47,6 +74,27 @@ async def _execute_task_with_retry(task_id: str, task: str, from_checkpoint: boo
 
             update_task(task_id, status="success", result=result)
             logger.info(f"任务{action_label}成功: {task_id}")
+
+            # 如果传入了 caseId，生成 KityMinder 格式并回写
+            if case_id:
+                from formatters import KityMinderFormatter
+                from api.services.result_service import _parse_result_data
+
+                testcases, _ = _parse_result_data(result if isinstance(result, str) else json.dumps(result, ensure_ascii=False))
+                if testcases:
+                    formatter = KityMinderFormatter()
+                    metadata = {
+                        "title": "测试用例文档",
+                        "requirement": task,
+                        "generated_at": "",
+                        "total_count": len(testcases),
+                        "coverage": 0
+                    }
+                    case_content = formatter.format(testcases, metadata)
+                    await _call_save_ai_result(case_id, task_id, case_content)
+                else:
+                    logger.warning(f"caseId={case_id} 但用例为空，跳过 saveAiResult 调用")
+
             return
         except Exception as e:
             retry_count += 1

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from api.schemas import MultiFormatResult, XMindFormats
-from formatters import MarkdownFormatter, XMindFormatter
+from formatters import MarkdownFormatter, XMindFormatter, KityMinderFormatter
 from utils.json_utils import parse_markdown_table
 from utils.logger import logger
 
@@ -16,6 +16,7 @@ RESULT_DIR.mkdir(parents=True, exist_ok=True)
 
 _markdown_formatter = MarkdownFormatter()
 _xmind_formatter = XMindFormatter()
+_kityminder_formatter = KityMinderFormatter()
 
 
 def _parse_result_data(raw_result: Optional[str]) -> Tuple[List[Dict[str, Any]], int]:
@@ -110,11 +111,18 @@ def build_result(task: Dict[str, Any]) -> Dict[str, Any]:
         logger.error(f"XMind 2023 格式化失败: {e}")
         xmind_2023_bytes = b""
 
+    try:
+        kityminder_data = _kityminder_formatter.format(testcases, metadata)
+    except Exception as e:
+        logger.error(f"KityMinder 格式化失败: {e}")
+        kityminder_data = {}
+
     # 原子保存文件（仅保存非空内容）
     json_path = _save_atomic(RESULT_DIR / f"{task_id}.json", testcases, "w") if testcases else None
     md_path = _save_atomic(RESULT_DIR / f"{task_id}.md", markdown_content, "w") if markdown_content else None
     xmind_8_path = _save_atomic(RESULT_DIR / f"{task_id}_xmind8.xmind", xmind_8_bytes, "wb") if xmind_8_bytes else None
     xmind_2023_path = _save_atomic(RESULT_DIR / f"{task_id}_xmind2023.xmind", xmind_2023_bytes, "wb") if xmind_2023_bytes else None
+    km_path = _save_atomic(RESULT_DIR / f"{task_id}.km", kityminder_data, "w") if kityminder_data else None
 
     # 构建响应
     xmind_formats = XMindFormats(
@@ -127,7 +135,8 @@ def build_result(task: Dict[str, Any]) -> Dict[str, Any]:
     multi_format_result = MultiFormatResult(
         json=testcases,
         markdown=markdown_content,
-        xmind=xmind_formats
+        xmind=xmind_formats,
+        kityminder=kityminder_data
     )
 
     logger.info(f"返回多格式结果，Markdown: {len(markdown_content)} 字符，XMind: {len(xmind_8_bytes)} 字节")
@@ -137,6 +146,7 @@ def build_result(task: Dict[str, Any]) -> Dict[str, Any]:
             "json": str(json_path) if json_path else None,
             "markdown": str(md_path) if md_path else None,
             "xmind_8": str(xmind_8_path) if xmind_8_path else None,
-            "xmind_2023": str(xmind_2023_path) if xmind_2023_path else None
+            "xmind_2023": str(xmind_2023_path) if xmind_2023_path else None,
+            "kityminder": str(km_path) if km_path else None
         }
     }

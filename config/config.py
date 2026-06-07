@@ -117,6 +117,8 @@ class Config:
     CONFLUENCE_EMAIL: str = _get_env_str("CONFLUENCE_EMAIL", "")
     CONFLUENCE_API_TOKEN: str = _get_env_str("CONFLUENCE_API_TOKEN", "")
 
+    SAVE_AI_RESULT_URL: str = _get_env_str("SAVE_AI_RESULT_URL", f"http://127.0.0.1:{_get_env_int('SERVER_PORT', 8001)}/api/case/saveAiResult")
+
     SENSITIVE_KEYS = frozenset([
         "FEISHU_USER_ACCESS_TOKEN", "TAPD_API_PASSWORD", "TAPD_API_USER",
         "YUQUE_API_TOKEN", "SHIMO_CLIENT_SECRET", "SHIMO_API_TOKEN",
