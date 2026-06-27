@@ -37,6 +37,7 @@ class Database:
                 task TEXT,
                 status TEXT,
                 result TEXT,
+                task_type TEXT DEFAULT 'testcase',
                 created_at TEXT,
                 updated_at TEXT
             )
@@ -74,6 +75,62 @@ class Database:
                 c.execute("ALTER TABLE node_status ADD COLUMN token_usage TEXT")
             except Exception:
                 pass
+            # 兼容旧表：如果缺少 task_type 列则添加
+            try:
+                c.execute("ALTER TABLE tasks ADD COLUMN task_type TEXT DEFAULT 'testcase'")
+            except Exception:
+                pass
+            # 创建 knowledge_bases 表
+            c.execute("""
+            CREATE TABLE IF NOT EXISTS knowledge_bases (
+                id TEXT PRIMARY KEY,
+                task_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                markdown_content TEXT,
+                modules_json TEXT,
+                source_case_ids TEXT,
+                case_content_hashes TEXT DEFAULT '{}',
+                item_count INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                created_at TEXT,
+                updated_at TEXT,
+                FOREIGN KEY (task_id) REFERENCES tasks(id)
+            )
+            """)
+            # 兼容旧表：如果缺少 item_count 列则添加
+            try:
+                c.execute("ALTER TABLE knowledge_bases ADD COLUMN item_count INTEGER DEFAULT 0")
+            except Exception:
+                pass
+            # 兼容旧表：如果缺少 case_content_hashes 列则添加
+            try:
+                c.execute("ALTER TABLE knowledge_bases ADD COLUMN case_content_hashes TEXT DEFAULT '{}'")
+            except Exception:
+                pass
+            # 创建 knowledge_items 表
+            c.execute("""
+            CREATE TABLE IF NOT EXISTS knowledge_items (
+                id TEXT PRIMARY KEY,
+                knowledge_base_id TEXT NOT NULL,
+                module TEXT NOT NULL,
+                item_type TEXT NOT NULL,
+                content TEXT NOT NULL,
+                priority TEXT,
+                source_case_ids TEXT,
+                status TEXT DEFAULT 'active',
+                old_content TEXT,
+                change_reason TEXT,
+                created_at TEXT,
+                updated_at TEXT,
+                FOREIGN KEY (knowledge_base_id) REFERENCES knowledge_bases(id)
+            )
+            """)
+            # 添加索引优化查询性能
+            c.execute("""CREATE INDEX IF NOT EXISTS idx_knowledge_items_kb_id ON knowledge_items(knowledge_base_id)""")
+            c.execute("""CREATE INDEX IF NOT EXISTS idx_knowledge_items_status ON knowledge_items(status)""")
+            c.execute("""CREATE INDEX IF NOT EXISTS idx_knowledge_items_kb_status ON knowledge_items(knowledge_base_id, status)""")
+            c.execute("""CREATE INDEX IF NOT EXISTS idx_knowledge_bases_task_id ON knowledge_bases(task_id)""")
             conn.commit()
         except Exception as e:
             logger.error(f"数据库初始化失败: {e}")

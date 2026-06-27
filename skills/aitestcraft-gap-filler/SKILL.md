@@ -1,5 +1,5 @@
 ---
-name: gap-filler
+name: aitestcraft-gap-filler
 description: >
   测试用例补全引擎，根据评审问题和覆盖缺失补充测试用例，输出原始用例与新增用例的合并结果。
 version: 4.0
@@ -49,6 +49,7 @@ author: leizi
   {
     "id": "TC001",
     "name": "string",
+    "model":""",
     "priority": "P0|P1|P2",
     "precondition": "string",
     "steps": ["string"],
@@ -71,7 +72,7 @@ author: leizi
 # EXAMPLE
 输入：
 ## 测试用例
-[{"id": "TC001", "name": "登录-手机号正确登录", "priority": "P0", "precondition": "用户未登录", "steps": ["输入正确手机号"], "assert": ["登录成功"]}]
+[{"id": "TC001", "name": "登录-手机号正确登录","model":"登录", "priority": "P0", "precondition": "用户未登录", "steps": ["输入正确手机号"], "assert": ["登录成功"]}]
 
 ## 评审结果
 ## 评审评分：65分
@@ -94,7 +95,7 @@ high
 
 输出：
 [
-  {"id": "TC001", "name": "登录-手机号正确登录", "priority": "P0", "precondition": "用户未登录", "steps": ["输入正确手机号"], "assert": ["登录成功"]},
-  {"id": "TC002", "name": "登录-验证码错误提示", "priority": "P1", "precondition": "用户未登录", "steps": ["输入正确手机号", "输入错误验证码"], "assert": ["提示验证码错误"]},
-  {"id": "TC003", "name": "登录-验证码过期提示", "priority": "P1", "precondition": "验证码已超过5分钟", "steps": ["输入正确手机号", "输入过期验证码"], "assert": ["提示验证码已过期"]}
+  {"id": "TC001","model":"登录", "name": "登录-手机号正确登录", "priority": "P0", "precondition": "用户未登录", "steps": ["输入正确手机号"], "assert": ["登录成功"]},
+  {"id": "TC002","model":"登录", "name": "登录-验证码错误提示", "priority": "P1", "precondition": "用户未登录", "steps": ["输入正确手机号", "输入错误验证码"], "assert": ["提示验证码错误"]},
+  {"id": "TC003", "model":"登录","name": "登录-验证码过期提示", "priority": "P1", "precondition": "验证码已超过5分钟", "steps": ["输入正确手机号", "输入过期验证码"], "assert": ["提示验证码已过期"]}
 ]

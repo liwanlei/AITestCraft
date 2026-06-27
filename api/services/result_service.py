@@ -26,7 +26,12 @@ def _parse_result_data(raw_result: Optional[str]) -> Tuple[List[Dict[str, Any]],
     try:
         result_data = json.loads(raw_result)
     except (json.JSONDecodeError, ValueError, TypeError) as e:
-        logger.warning(f"结果数据 JSON 解析失败: {e}, 数据长度: {len(raw_result)}")
+        logger.warning(f"结果数据 JSON 解析失败: {e}, 数据长度: {len(raw_result)}，尝试 Markdown 解析")
+        if raw_result.strip().startswith("|") or raw_result.strip().startswith("#"):
+            testcases = parse_markdown_table(raw_result)
+            if testcases:
+                logger.info(f"Markdown 解析成功，共 {len(testcases)} 条用例")
+                return testcases, 0
         return [], 0
 
     if isinstance(result_data, list):
@@ -84,9 +89,11 @@ def build_result(task: Dict[str, Any]) -> Dict[str, Any]:
     if not testcases and task.get("result") is None:
         return {"result": None, "message": "任务无结果", "status": task_status}
 
+    requirement = "测试用例"
+
     metadata: Dict[str, Any] = {
         "title": "测试用例文档",
-        "requirement": task.get("task", ""),
+        "requirement": requirement,
         "generated_at": datetime.now().strftime("%Y-%m-%d"),
         "total_count": len(testcases),
         "coverage": coverage

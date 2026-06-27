@@ -25,13 +25,13 @@ def _get_connection() -> Iterator[Any]:
             db._release_conn(conn)
 
 
-def create_task(task_id: str, task: str) -> None:
+def create_task(task_id: str, task: str, task_type: str = "testcase") -> None:
     db = get_db()
     with _get_connection() as conn:
         with db._write_lock:
             conn.execute(
-                "INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?)",
-                (task_id, task, "pending", None, db._now(), db._now())
+                "INSERT INTO tasks (id, task, status, result, task_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (task_id, task, "pending", None, task_type, db._now(), db._now())
             )
             conn.commit()
         logger.info(f"任务创建成功: {task_id}...")
@@ -59,7 +59,7 @@ def update_task(task_id: str, status: Optional[str] = None, result: Optional[Any
 def get_task(task_id: str) -> Dict[str, Any]:
     with _get_connection() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, task, status, result, created_at, updated_at FROM tasks WHERE id=?", (task_id,))
+        cur.execute("SELECT id, task, status, result, task_type, created_at, updated_at FROM tasks WHERE id=?", (task_id,))
         row = cur.fetchone()
         if not row:
             raise TaskNotFoundError(f"任务 {task_id} 不存在")
@@ -85,7 +85,7 @@ def get_tasks_by_status(statuses: List[str]) -> List[Dict[str, Any]]:
         cur = conn.cursor()
         placeholders = ",".join("?" * len(statuses))
         cur.execute(
-            f"SELECT id, task, status, result, created_at, updated_at FROM tasks WHERE status IN ({placeholders})",
+            f"SELECT id, task, status, result, task_type, created_at, updated_at FROM tasks WHERE status IN ({placeholders})",
             tuple(statuses)
         )
         columns = [desc[0] for desc in cur.description]

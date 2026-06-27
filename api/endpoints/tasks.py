@@ -55,6 +55,7 @@ async def run_task(
     doc_url: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     caseId: Optional[str] = Form(None),
+    knowledge_base_id: Optional[str] = Form(None),
 ) -> dict:
     """提交测试用例生成任务
 
@@ -65,6 +66,7 @@ async def run_task(
 
     可选参数：
     - caseId: 用例ID，传入后任务完成时会自动调用 saveAiResult 接口回写结果
+    - knowledge_base_id: 知识库ID，传入后任务将使用知识库中的需求知识点作为上下文
 
     至少需要提供一个参数。
     """
@@ -82,7 +84,7 @@ async def run_task(
             detail="task、doc_url、file 至少需要提供一个"
         )
 
-    return await process_task(request, task_content, case_id=caseId)
+    return await process_task(request, task_content, case_id=caseId, knowledge_base_id=knowledge_base_id)
 
 
 @router.get(
@@ -119,9 +121,9 @@ async def get_result(task_id: str) -> dict:
     task_id = validate_task_id(task_id)
     try:
         task = get_task(task_id)
-        logger.info(f"任务结果查询成功: {task_id[:8]}...")
+        logger.info(f"任务结果查询成功: {task_id}...")
     except TaskNotFoundError:
-        logger.warning(f"任务不存在: {task_id[:8]}...")
+        logger.warning(f"任务不存在: {task_id}...")
         raise HTTPException(status_code=404, detail="任务不存在")
 
     return build_result(task)

@@ -13,13 +13,51 @@ from utils.logger import logger
 from api.recovery import _create_tracked_task
 
 
-async def process_task(request: Request, task_content: str, case_id: str = None) -> dict:
+async def process_task(request: Request, task_content: str, case_id: str = None, knowledge_base_id: str = None) -> dict:
     task_id = str(uuid.uuid4())
     logger.info(f"创建任务: {task_id}")
     create_task(task_id, task_content)
-    _create_tracked_task(_execute_task_with_retry(task_id, task_content, case_id=case_id))
+    
+    # 如果提供了知识库ID，获取知识库内容并附加到任务内容
+    if knowledge_base_id:
+        try:
+            from storage.knowledge_repositories import get_knowledge_base, get_active_items
+            kb = get_knowledge_base(knowledge_base_id)
+            items = get_active_items(knowledge_base_id)
+            
+            # 将知识库内容构建为上下文
+            kb_context = _build_knowledge_context(kb, items)
+            logger.info(f"知识库 {knowledge_base_id} 已关联，包含 {len(items)} 个知识点")
+        except Exception as e:
+            logger.warning(f"获取知识库失败: {knowledge_base_id}, {e}")
+            kb_context = None
+    else:
+        kb_context = None
+    
+    _create_tracked_task(_execute_task_with_retry(
+        task_id, task_content, case_id=case_id, kb_context=kb_context
+    ))
 
     return {"task_id": task_id}
+
+
+def _build_knowledge_context(kb: dict, items: list) -> str:
+    """构建知识库上下文字符串"""
+    lines = []
+    lines.append("## 知识库上下文\n")
+    
+    if kb.get("title"):
+        lines.append(f"### {kb['title']}\n")
+    
+    if items:
+        lines.append("### 需求知识点：\n")
+        for item in items:
+            module = item.get("module", "")
+            item_type = item.get("item_type", "")
+            content = item.get("content", "")
+            lines.append(f"- [{module}] {item_type}: {content}\n")
+    
+    return "\n".join(lines)
 
 
 async def _call_save_ai_result(case_id: str, task_id: str, case_content: dict) -> None:
@@ -49,6 +87,7 @@ async def _execute_task_with_retry(
     from_checkpoint: bool = False,
     is_recovery: bool = False,
     case_id: str = None,
+    kb_context: str = None,
 ) -> None:
     max_retries = Config.NODE_MAX_RETRY
     retry_count = 0
@@ -69,8 +108,18 @@ async def _execute_task_with_retry(
 
             update_task(task_id, status="running")
             logger.info(f"任务状态已更新为 running: {task_id}")
-
-            result = await taskexecution(task=task, task_id=task_id, isapi=True, from_checkpoint=from_checkpoint)
+            logger.info(f"任务内容: {task}")
+            logger.info(f"知识库上下文: {kb_context}")
+            logger.info(f"知识库上下文长度: {len(kb_context) if kb_context else 0} 字符")
+            logger.info(f"任务内容: {task}")
+            # 如果有知识库上下文，将其附加到任务内容前面
+            if kb_context:
+                task_with_context = f"{kb_context}\n\n---\n\n## 新需求\n\n{task}"
+            else:
+                task_with_context = task
+            logger.info(f"任务内容: {task_with_context}")
+            
+            result = await taskexecution(task=task_with_context, task_id=task_id, isapi=True, from_checkpoint=from_checkpoint)
 
             update_task(task_id, status="success", result=result)
             logger.info(f"任务{action_label}成功: {task_id}")

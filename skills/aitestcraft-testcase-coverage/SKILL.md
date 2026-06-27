@@ -1,5 +1,5 @@
 ---
-name: testcase-coverage
+name: aitestcraft-testcase-coverage
 description: >
   测试架构师，分析测试用例对需求的覆盖率，识别覆盖缺口。
 version: 4.0

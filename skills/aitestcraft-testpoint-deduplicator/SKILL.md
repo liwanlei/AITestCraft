@@ -1,5 +1,5 @@
 ---
-name: testpoint-deduplicator
+name: aitestcraft-testpoint-deduplicator
 description: >
   测试点去重引擎。识别语义重复或高度相似的测试点，并输出唯一测试点列表。
 version: 4.0

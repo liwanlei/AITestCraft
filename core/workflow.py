@@ -55,7 +55,8 @@ class Workflow:
         
         # 获取节点状态
         node_statuses = get_node_status(task_id)
-        logger.info(f"从断点恢复: 任务 {task_id[:8]}..., 已完成节点: {len(node_statuses)}")
+        is_resuming = any(s.get("status") == "completed" for s in node_statuses.values())
+        logger.info(f"任务 {task_id[:8]}..., 已完成节点: {len(node_statuses)}, 断点恢复: {is_resuming}")
         
         # 找出最后一个完成的节点
         last_completed = None
@@ -111,7 +112,7 @@ class Workflow:
                     logger.info(f"节点 [{node_name}] 使用缓存结果，跳过执行")
                     continue
             
-            logger.info(f"节点开始: [{node_name}] (从断点恢复)")
+            logger.info(f"节点开始: [{node_name}]{' (断点恢复)' if is_resuming else ''}")
             ctx = await node.run(ctx)
             
             next_nodes = self.edges.get(node_name, [])
@@ -164,7 +165,11 @@ class Workflow:
             module_id = item["module_id"]
             payload = item["input"]
             try:
-                logger.info(f"执行 [{node_name}] 模块: {module_id}")
+                # 打印并行节点输入
+                input_preview = payload
+                input_suffix = f"\n(，共 {len(payload)} 字符)"
+                logger.info(f"节点 [{node_name}] 模块 [{module_id}] 输入内容 ({len(payload)} 字符):\n{input_preview}{input_suffix}")
+                
                 result = await run_with_retry(
                     node.agent, payload,
                     retries=node.max_retry,
@@ -173,6 +178,12 @@ class Workflow:
                 )
                 raw = result.text
                 raw_str = str(raw).strip() if raw else ""
+                
+                # 打印并行节点输出
+                output_preview = raw_str
+                output_suffix = f"\n(，共 {len(raw_str)} 字符)"
+                logger.info(f"节点 [{node_name}] 模块 [{module_id}] 输出内容 ({len(raw_str)} 字符):\n{output_preview}{output_suffix}")
+                
                 usage_info = extract_usage_info(result)
                 return module_id, raw_str, usage_info
             except Exception as e:

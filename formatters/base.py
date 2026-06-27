@@ -36,7 +36,7 @@ class BaseFormatter(ABC):
     def _group_by_module(self, testcases: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
         groups: Dict[str, List[Dict[str, Any]]] = {}
         for case in testcases:
-            module = case.get("module", "") or case.get("模块", "") or "未分类"
+            module = case.get("module", "") or case.get("模块", "") or case.get("model", "") or "未分类"
             if module not in groups:
                 groups[module] = []
             groups[module].append(case)

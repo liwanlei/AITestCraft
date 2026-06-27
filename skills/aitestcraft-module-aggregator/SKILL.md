@@ -1,5 +1,5 @@
 ---
-name: module-aggregator
+name: aitestcraft-module-aggregator
 description: >
   模块测试点汇总引擎。合并各模块测试点，全局去重，按模块分组输出。
 version: 1.0

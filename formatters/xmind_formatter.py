@@ -47,7 +47,8 @@ class XMindFormatter(BaseFormatter):
         root_id = str(uuid.uuid4())
 
         module_groups = self._group_by_module(testcases)
-        if module_groups and len(module_groups) > 1:
+        
+        if module_groups:
             children = []
             for module_name, cases in module_groups.items():
                 module_node = self._build_module_node(module_name, cases)
@@ -152,7 +153,7 @@ class XMindFormatter(BaseFormatter):
         return {
             "id": module_id,
             "class": "topic",
-            "title": f"{module_name} ({len(cases)}条)",
+            "title": module_name,
             "children": {
                 "attached": case_nodes
             }

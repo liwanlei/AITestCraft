@@ -1,12 +1,25 @@
 # -*- coding: utf-8 -*-
+import json
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from config.config import Config
 from storage.db import init_db
 from utils.parsers._http import close_shared_session
+
+
+class UnicodeJSONResponse(JSONResponse):
+    """支持中文直接输出的 JSON 响应"""
+    def render(self, content) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+        ).encode("utf-8")
 
 
 @asynccontextmanager
@@ -29,7 +42,8 @@ app = FastAPI(
     title="AITestCraft API",
     description="基于AI的测试用例生成和管理系统",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    default_response_class=UnicodeJSONResponse,
 )
 
 app.add_middleware(
@@ -41,8 +55,10 @@ app.add_middleware(
 )
 
 from api.endpoints.tasks import router as tasks_router
+from api.endpoints.knowledge import router as knowledge_router
 
 app.include_router(tasks_router, tags=["tasks"])
+app.include_router(knowledge_router, tags=["knowledge"])
 
 
 @app.get("/health")

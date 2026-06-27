@@ -1,5 +1,5 @@
 ---
-name: testcase-reviewer
+name: aitestcraft-testcase-reviewer
 description: >
   测试用例质量评审引擎。检查测试用例是否可执行、是否缺失断言、是否重复、
   是否存在逻辑错误，并对照需求检查覆盖缺口。

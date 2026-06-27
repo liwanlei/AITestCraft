@@ -86,7 +86,7 @@ class KityMinderFormatter(BaseFormatter):
         steps = case.get("steps", [])
         if isinstance(steps, list):
             for i, step in enumerate(steps):
-                chain_nodes.append(("测试步骤", f"{i + 1}. {step}"))
+                chain_nodes.append(("执行步骤", f"{i + 1}. {step}"))
 
         assert_list = case.get("assert", [])
         if not isinstance(assert_list, list):

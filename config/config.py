@@ -76,13 +76,19 @@ class Config:
     LOG_FILE_LEVEL: str = _get_env_str("LOG_FILE_LEVEL", "DEBUG").upper()
 
     SKILL_NAMES: Dict[str, str] = {
-        "requirement": "requirement-parser",
-        "testpoint": "testpoint-extractor",
-        "testcase": "testcase-generator",
-        "review": "testcase-reviewer",
-        "coverage": "testcase-coverage",
-        "gap": "gap-filler",
-        "aggregator": "module-aggregator",
+        "requirement": "aitestcraft-requirement-parser",
+        "testpoint": "aitestcraft-testpoint-extractor",
+        "testcase": "aitestcraft-testcase-generator",
+        "review": "aitestcraft-testcase-reviewer",
+        "coverage": "aitestcraft-testcase-coverage",
+        "gap": "aitestcraft-gap-filler",
+        "aggregator": "aitestcraft-module-aggregator",
+        "deduplicator": "aitestcraft-testpoint-deduplicator",
+        # 知识提取工作流（fetch-cases 由代码完成，不需要 skill）
+        "summarize-modules": "aitestcraft-summarize-modules",
+        "dedup-knowledge": "aitestcraft-dedup",
+        "resolve-conflicts": "aitestcraft-resolve-conflicts",
+        "consolidate-knowledge": "aitestcraft-consolidate-knowledge",
     }
 
     CORS_ORIGINS: List[str] = _get_env_list("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080")
@@ -97,6 +103,14 @@ class Config:
     TASK_RECOVERY_ENABLED: bool = _get_env_bool("TASK_RECOVERY_ENABLED", True)
     TASK_RECOVERY_INTERVAL: float = _get_env_int("TASK_RECOVERY_INTERVAL", 500) / 1000  # 转换为秒
     TASK_RECOVERY_MAX_COUNT: int = _get_env_int("TASK_RECOVERY_MAX_COUNT", 10)
+
+    # 外部用例服务配置
+    CASE_SERVICE_BASE_URL: str = _get_env_str("CASE_SERVICE_BASE_URL", "")
+    CASE_SERVICE_GET_CASE_API: str = _get_env_str("CASE_SERVICE_GET_CASE_API", "/api/case/getCaseJson")
+
+    # 知识提取工作流配置
+    KNOWLEDGE_FETCH_TIMEOUT: int = _get_env_int("KNOWLEDGE_FETCH_TIMEOUT", 30)
+    KNOWLEDGE_FETCH_CONCURRENCY: int = _get_env_int("KNOWLEDGE_FETCH_CONCURRENCY", 5)
 
     PDF_TEXT_THRESHOLD: int = 50
     PDF_VISION_MODEL_ID: str = _get_env_str("PDF_VISION_MODEL_ID", "gpt-4o")
