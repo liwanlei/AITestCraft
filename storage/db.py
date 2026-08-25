@@ -70,17 +70,7 @@ class Database:
             c.execute("""
             CREATE INDEX IF NOT EXISTS idx_node_status_task_id ON node_status(task_id)
             """)
-            # 兼容旧表：如果缺少 token_usage 列则添加
-            try:
-                c.execute("ALTER TABLE node_status ADD COLUMN token_usage TEXT")
-            except Exception:
-                pass
-            # 兼容旧表：如果缺少 task_type 列则添加
-            try:
-                c.execute("ALTER TABLE tasks ADD COLUMN task_type TEXT DEFAULT 'testcase'")
-            except Exception:
-                pass
-            # 创建 knowledge_bases 表
+            # 创建 knowledge_bases 表（使用 CREATE IF NOT EXISTS，无需兼容 ALTER）
             c.execute("""
             CREATE TABLE IF NOT EXISTS knowledge_bases (
                 id TEXT PRIMARY KEY,
@@ -98,16 +88,6 @@ class Database:
                 FOREIGN KEY (task_id) REFERENCES tasks(id)
             )
             """)
-            # 兼容旧表：如果缺少 item_count 列则添加
-            try:
-                c.execute("ALTER TABLE knowledge_bases ADD COLUMN item_count INTEGER DEFAULT 0")
-            except Exception:
-                pass
-            # 兼容旧表：如果缺少 case_content_hashes 列则添加
-            try:
-                c.execute("ALTER TABLE knowledge_bases ADD COLUMN case_content_hashes TEXT DEFAULT '{}'")
-            except Exception:
-                pass
             # 创建 knowledge_items 表
             c.execute("""
             CREATE TABLE IF NOT EXISTS knowledge_items (
@@ -141,11 +121,12 @@ class Database:
         conn.row_factory = None
         return conn
 
-    def _get_conn(self, timeout: float = 30.0) -> sqlite3.Connection:
+    def _get_conn(self, timeout: float = 5.0) -> sqlite3.Connection:
         start_time = datetime.now(timezone.utc)
-        wait_interval = 0.1
+        wait_interval = 0.01
+        max_wait_count = int(timeout / wait_interval)
 
-        while True:
+        for _ in range(max_wait_count):
             with self._pool_lock:
                 if self._connection_pool:
                     conn = self._connection_pool.popleft()
@@ -168,13 +149,11 @@ class Database:
                     logger.debug(f"创建新连接，当前池大小: {len(self._connection_pool)}, 活跃: {self._active_connections}")
                     return conn
 
-                elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()
-                if elapsed >= timeout:
-                    logger.error(f"获取数据库连接超时，已等待 {elapsed:.2f} 秒")
-                    raise DatabaseError(f"获取数据库连接超时，已等待 {elapsed:.2f} 秒")
-
             time.sleep(wait_interval)
-            wait_interval = min(wait_interval * 1.5, 2.0)
+
+        elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()
+        logger.error(f"获取数据库连接超时，已等待 {elapsed:.2f} 秒")
+        raise DatabaseError(f"获取数据库连接超时，已等待 {elapsed:.2f} 秒")
 
     def _release_conn(self, conn: sqlite3.Connection) -> None:
         with self._pool_lock:

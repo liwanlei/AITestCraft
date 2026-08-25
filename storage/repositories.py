@@ -10,7 +10,7 @@ from utils.logger import logger
 
 
 @contextmanager
-def _get_connection() -> Iterator[Any]:
+def get_connection() -> Iterator[Any]:
     db = get_db()
     conn = None
     try:
@@ -27,7 +27,7 @@ def _get_connection() -> Iterator[Any]:
 
 def create_task(task_id: str, task: str, task_type: str = "testcase") -> None:
     db = get_db()
-    with _get_connection() as conn:
+    with get_connection() as conn:
         with db._write_lock:
             conn.execute(
                 "INSERT INTO tasks (id, task, status, result, task_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -39,7 +39,7 @@ def create_task(task_id: str, task: str, task_type: str = "testcase") -> None:
 
 def update_task(task_id: str, status: Optional[str] = None, result: Optional[Any] = None) -> None:
     db = get_db()
-    with _get_connection() as conn:
+    with get_connection() as conn:
         with db._write_lock:
             if result is not None:
                 conn.execute(
@@ -57,7 +57,7 @@ def update_task(task_id: str, status: Optional[str] = None, result: Optional[Any
 
 
 def get_task(task_id: str) -> Dict[str, Any]:
-    with _get_connection() as conn:
+    with get_connection() as conn:
         cur = conn.cursor()
         cur.execute("SELECT id, task, status, result, task_type, created_at, updated_at FROM tasks WHERE id=?", (task_id,))
         row = cur.fetchone()
@@ -70,7 +70,7 @@ def get_task(task_id: str) -> Dict[str, Any]:
 
 def insert_log(task_id: str, node: str, message: str) -> None:
     db = get_db()
-    with _get_connection() as conn:
+    with get_connection() as conn:
         with db._write_lock:
             conn.execute(
                 "INSERT INTO logs (task_id, node, message, created_at) VALUES (?, ?, ?, ?)",
@@ -81,7 +81,7 @@ def insert_log(task_id: str, node: str, message: str) -> None:
 
 
 def get_tasks_by_status(statuses: List[str]) -> List[Dict[str, Any]]:
-    with _get_connection() as conn:
+    with get_connection() as conn:
         cur = conn.cursor()
         placeholders = ",".join("?" * len(statuses))
         cur.execute(
@@ -143,7 +143,7 @@ def _format_datetime(iso_datetime: str) -> str:
 
 
 def get_logs(task_id: str) -> List[Dict[str, Any]]:
-    with _get_connection() as conn:
+    with get_connection() as conn:
         cur = conn.cursor()
         cur.execute(
             "SELECT node, message, created_at FROM logs WHERE task_id=? ORDER BY id ASC",
@@ -168,7 +168,7 @@ def get_logs(task_id: str) -> List[Dict[str, Any]]:
 
 def update_node_status(task_id: str, node_name: str, status: str, result: Optional[Any] = None, token_usage: Optional[Dict[str, int]] = None) -> None:
     db = get_db()
-    with _get_connection() as conn:
+    with get_connection() as conn:
         with db._write_lock:
             result_json = json.dumps(result, ensure_ascii=False) if result is not None else None
             token_usage_json = json.dumps(token_usage, ensure_ascii=False) if token_usage is not None else None
@@ -185,7 +185,7 @@ def update_node_status(task_id: str, node_name: str, status: str, result: Option
 
 
 def get_node_status(task_id: str) -> Dict[str, Dict[str, Any]]:
-    with _get_connection() as conn:
+    with get_connection() as conn:
         cur = conn.cursor()
         cur.execute(
             "SELECT node_name, status, result, token_usage, created_at, updated_at FROM node_status WHERE task_id=?",
@@ -205,7 +205,7 @@ def get_node_status(task_id: str) -> Dict[str, Dict[str, Any]]:
 
 
 def get_last_completed_node(task_id: str) -> Optional[str]:
-    with _get_connection() as conn:
+    with get_connection() as conn:
         cur = conn.cursor()
         cur.execute(
             """SELECT node_name FROM node_status 
@@ -217,10 +217,4 @@ def get_last_completed_node(task_id: str) -> Optional[str]:
         return row[0] if row else None
 
 
-def clear_node_status(task_id: str) -> None:
-    db = get_db()
-    with _get_connection() as conn:
-        with db._write_lock:
-            conn.execute("DELETE FROM node_status WHERE task_id=?", (task_id,))
-            conn.commit()
-        logger.debug(f"节点状态已清除: {task_id}...")
+

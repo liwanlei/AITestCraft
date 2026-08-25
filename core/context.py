@@ -3,6 +3,36 @@ import threading
 from typing import Any, Dict, Optional
 
 
+# === Context 键名常量 ===
+# 任务相关
+CTX_KEY_TASK_ID = "task_id"
+CTX_KEY_TASK = "task"
+CTX_KEY_ISAPI = "isapi"
+CTX_KEY_TOKEN_STATS = "token_stats"
+
+# 用例相关
+CTX_KEY_CASES = "cases"
+CTX_KEY_CASE_IDS = "case_ids"
+CTX_KEY_CATEGORY_NAME = "category_name"
+
+# 需求与测试点
+CTX_KEY_REQUIREMENT = "requirement"
+CTX_KEY_TESTPOINT = "testpoint"
+CTX_KEY_MODULE_TESTPOINTS = "module_testpoints"
+CTX_KEY_GROUPED_TESTPOINTS = "grouped_testpoints"
+CTX_KEY_UNIQUE_TESTPOINTS = "unique_testpoints"
+CTX_KEY_TESTCASE = "testcase"
+CTX_KEY_REVIEW = "review"
+CTX_KEY_COVERAGE = "coverage"
+CTX_KEY_FINAL_CASES = "final_cases"
+
+# 知识库相关
+CTX_KEY_MODULE_KNOWLEDGE = "module_knowledge"
+CTX_KEY_DEDUPED_ITEMS = "deduped_items"
+CTX_KEY_RESOLVED_ITEMS = "resolved_items"
+CTX_KEY_FINAL_KNOWLEDGE = "final_knowledge"
+
+
 class Context:
     def __init__(self, initial: Dict[str, Any] = None):
         self._data: Dict[str, Any] = dict(initial) if initial else {}

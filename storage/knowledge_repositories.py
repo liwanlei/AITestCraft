@@ -3,6 +3,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from storage.db import get_db
+from storage.repositories import get_connection
 from utils.logger import logger
 
 
@@ -18,25 +19,21 @@ def create_knowledge_base(
 ) -> None:
     """创建知识库主记录"""
     db = get_db()
-    conn = db._get_conn()
-    try:
-        conn.execute(
-            """INSERT INTO knowledge_bases 
-               (id, task_id, title, description, markdown_content, modules_json, source_case_ids, case_content_hashes, status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)""",
-            (kb_id, task_id, title, description, markdown_content, modules_json, source_case_ids, case_content_hashes, db._now(), db._now())
-        )
-        conn.commit()
+    with get_connection() as conn:
+        with db._write_lock:
+            conn.execute(
+                """INSERT INTO knowledge_bases 
+                   (id, task_id, title, description, markdown_content, modules_json, source_case_ids, case_content_hashes, status, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)""",
+                (kb_id, task_id, title, description, markdown_content, modules_json, source_case_ids, case_content_hashes, db._now(), db._now())
+            )
+            conn.commit()
         logger.info(f"知识库创建成功: {kb_id}")
-    finally:
-        db._release_conn(conn)
 
 
 def get_knowledge_base(kb_id: str) -> Dict[str, Any]:
     """查询知识库详情"""
-    db = get_db()
-    conn = db._get_conn()
-    try:
+    with get_connection() as conn:
         cur = conn.cursor()
         cur.execute(
             "SELECT id, task_id, title, description, markdown_content, modules_json, source_case_ids, case_content_hashes, status, created_at, updated_at FROM knowledge_bases WHERE id=?",
@@ -47,11 +44,9 @@ def get_knowledge_base(kb_id: str) -> Dict[str, Any]:
             raise ValueError(f"知识库 {kb_id} 不存在")
         columns = [desc[0] for desc in cur.description]
         return dict(zip(columns, row))
-    finally:
-        db._release_conn(conn)
 
 
-def find_knowledge_base_by_cases(case_ids: List[str]) -> Optional[Dict[str, Any]]:
+def find_kb_containing_cases(case_ids: List[str]) -> Optional[Dict[str, Any]]:
     """
     查找包含指定用例的知识库（按 source_case_ids 匹配）
     

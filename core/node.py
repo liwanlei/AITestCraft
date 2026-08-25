@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, NamedTuple, Optional
 
 from config.config import Config
 from utils.exceptions import NodeExecutionError, SchemaValidationError
@@ -12,30 +12,30 @@ from core.retry import run_with_retry
 from utils.token_utils import extract_usage_info, extract_token_counts
 
 
+class NodeConfig(NamedTuple):
+    """节点配置，封装节点创建所需的全部参数"""
+    name: str
+    agent: Any
+    input_fn: Callable[[Context], str]
+    output_key: str
+    schema: Optional[Dict] = None
+    condition: Optional[Callable[[Context], bool]] = None
+    model_settings: Optional[Dict] = None
+    output_format: str = "json"
+
+
 class Node:
-    def __init__(
-            self,
-            name: str,
-            agent: Any,
-            input_fn: Callable[[Context], str],
-            output_key: str,
-            condition: Optional[Callable[[Context], bool]] = None,
-            schema: Optional[Dict] = None,
-            max_retry: int = Config.NODE_MAX_RETRY,
-            timeout: Optional[int] = Config.AGENT_TIMEOUT_SECONDS,
-            model_settings: Optional[Dict] = None,
-            output_format: str = "json"
-    ):
-        self.name = name
-        self.agent = agent
-        self.input_fn = input_fn
-        self.output_key = output_key
-        self.condition = condition
-        self.schema = schema
-        self.max_retry = max_retry
-        self.timeout = timeout
-        self.model_settings = model_settings or Config.MODEL_SETTINGS
-        self.output_format = output_format
+    def __init__(self, config: NodeConfig):
+        self.name = config.name
+        self.agent = config.agent
+        self.input_fn = config.input_fn
+        self.output_key = config.output_key
+        self.condition = config.condition
+        self.schema = config.schema
+        self.max_retry = Config.NODE_MAX_RETRY
+        self.timeout = Config.AGENT_TIMEOUT_SECONDS
+        self.model_settings = config.model_settings or Config.MODEL_SETTINGS
+        self.output_format = config.output_format
 
     def _log(self, task_id: str, event: str, detail: str = "", level: str = "INFO") -> None:
         if not task_id:

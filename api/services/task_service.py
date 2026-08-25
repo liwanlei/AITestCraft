@@ -12,6 +12,8 @@ from utils.logger import logger
 
 from api.recovery import _create_tracked_task
 
+from api.services.knowledge_service import build_knowledge_context
+
 
 async def process_task(request: Request, task_content: str, case_id: str = None, knowledge_base_id: str = None) -> dict:
     task_id = str(uuid.uuid4())
@@ -26,7 +28,7 @@ async def process_task(request: Request, task_content: str, case_id: str = None,
             items = get_active_items(knowledge_base_id)
             
             # 将知识库内容构建为上下文
-            kb_context = _build_knowledge_context(kb, items)
+            kb_context = build_knowledge_context(kb, items)
             logger.info(f"知识库 {knowledge_base_id} 已关联，包含 {len(items)} 个知识点")
         except Exception as e:
             logger.warning(f"获取知识库失败: {knowledge_base_id}, {e}")
@@ -39,25 +41,6 @@ async def process_task(request: Request, task_content: str, case_id: str = None,
     ))
 
     return {"task_id": task_id}
-
-
-def _build_knowledge_context(kb: dict, items: list) -> str:
-    """构建知识库上下文字符串"""
-    lines = []
-    lines.append("## 知识库上下文\n")
-    
-    if kb.get("title"):
-        lines.append(f"### {kb['title']}\n")
-    
-    if items:
-        lines.append("### 需求知识点：\n")
-        for item in items:
-            module = item.get("module", "")
-            item_type = item.get("item_type", "")
-            content = item.get("content", "")
-            lines.append(f"- [{module}] {item_type}: {content}\n")
-    
-    return "\n".join(lines)
 
 
 async def _call_save_ai_result(case_id: str, task_id: str, case_content: dict) -> None:

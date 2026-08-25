@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import json
 import threading
 from typing import Any, Dict, List, Optional
@@ -11,6 +12,8 @@ from agents.base import build_agents
 from config.config import Config
 from core.context import Context, TokenStats
 from core.node import NodeExecutionError
+from core.checkpoint_workflow import run_from_checkpoint
+from core.parallel_workflow import run_parallel
 from core.workflow_builders import build_workflow, _build_module_testpoint_inputs, _parse_modules, WORKFLOW_NODE_ORDER
 from storage.repositories import insert_log, get_node_status
 from utils.case_parser import parse_case_tree
@@ -24,9 +27,29 @@ _providers: Optional[Dict[str, SkillsProvider]] = None
 _providers_lock = threading.Lock()
 
 
-def _fetch_cases_by_code(case_ids: List[str]) -> tuple:
+async def _fetch_single_case(case_id: str, semaphore: asyncio.Semaphore) -> tuple:
+    """并发获取单个用例数据"""
+    async with semaphore:
+        base_url = Config.CASE_SERVICE_BASE_URL
+        api_path = Config.CASE_SERVICE_GET_CASE_API
+        url = f"{base_url.rstrip('/')}{api_path}"
+        try:
+            async with httpx.AsyncClient(timeout=Config.KNOWLEDGE_FETCH_TIMEOUT) as client:
+                resp = await client.get(url, params={"caseId": case_id})
+                resp.raise_for_status()
+                raw_data = resp.json()
+                cases = parse_case_tree(raw_data)
+                category_name = raw_data.get("data", {}).get("categoryName", "")
+                logger.debug(f"[知识提取] 用例 {case_id} 解析成功，提取 {len(cases)} 条")
+                return cases, category_name, None
+        except Exception as e:
+            logger.warning(f"[知识提取] 用例 {case_id} 获取/解析失败: {e}")
+            return [], "", e
+
+
+def _fetch_cases_from_api(case_ids: List[str]) -> tuple:
     """
-    通过代码调用外部用例服务获取用例数据并解析
+    通过外部 API 获取用例数据并解析（同步入口，内部使用异步并发）
     
     LLM 无法调用外部 API，因此 fetch-cases 步骤需要通过代码完成：
     1. 调用外部用例服务 API 获取原始数据
@@ -38,37 +61,25 @@ def _fetch_cases_by_code(case_ids: List[str]) -> tuple:
     Returns:
         (标准化用例列表, categoryName)
     """
-    base_url = Config.CASE_SERVICE_BASE_URL
-    api_path = Config.CASE_SERVICE_GET_CASE_API
-    
-    if not base_url:
+    if not Config.CASE_SERVICE_BASE_URL:
         logger.warning("[知识提取] 未配置 CASE_SERVICE_BASE_URL，无法获取用例数据")
         return [], ""
     
-    all_cases = []
-    category_name = ""
-    
-    for case_id in case_ids:
-        try:
-            url = f"{base_url.rstrip('/')}{api_path}"
-            resp = httpx.get(url, params={"caseId": case_id}, timeout=Config.KNOWLEDGE_FETCH_TIMEOUT)
-            resp.raise_for_status()
-            raw_data = resp.json()
-            
-            # 提取 categoryName
-            if not category_name:
-                category_name = raw_data.get("data", {}).get("categoryName", "")
-            
-            # 使用 case_parser 解析树形结构
-            cases = parse_case_tree(raw_data)
+    async def _fetch_all():
+        semaphore = asyncio.Semaphore(Config.KNOWLEDGE_FETCH_CONCURRENCY)
+        tasks = [_fetch_single_case(cid, semaphore) for cid in case_ids]
+        results = await asyncio.gather(*tasks)
+        
+        all_cases = []
+        category_name = ""
+        for cases, cname, err in results:
             all_cases.extend(cases)
-            
-            logger.debug(f"[知识提取] 用例 {case_id} 解析成功，提取 {len(cases)} 条")
-        except Exception as e:
-            logger.warning(f"[知识提取] 用例 {case_id} 获取/解析失败: {e}")
-            continue
+            if cname and not category_name:
+                category_name = cname
+        
+        return all_cases, category_name
     
-    return all_cases, category_name
+    return asyncio.run(_fetch_all())
 
 
 def _create_providers() -> Dict[str, SkillsProvider]:
@@ -91,7 +102,7 @@ def reset_providers() -> None:
 async def _run_workflow(wf: Any, ctx: Context, skip_completed: set = None) -> Context:
     if skip_completed:
         logger.info(f"使用断点恢复模式，跳过已完成节点: {skip_completed}")
-        return await wf.run_from_checkpoint(WORKFLOW_START_NODE, ctx)
+        return await run_from_checkpoint(wf, WORKFLOW_START_NODE, ctx)
 
     result_ctx = await wf.run_single_node("requirement", ctx)
 
@@ -101,7 +112,7 @@ async def _run_workflow(wf: Any, ctx: Context, skip_completed: set = None) -> Co
     if len(modules) > Config.MODULE_SPLIT_THRESHOLD:
         logger.info(f"检测到 {len(modules)} 个模块，超过阈值 {Config.MODULE_SPLIT_THRESHOLD}，启用分块并行处理")
         module_inputs = _build_module_testpoint_inputs(result_ctx)
-        result_ctx = await wf.run_parallel("testpoint", result_ctx, module_inputs, "testpoint")
+        result_ctx = await run_parallel(wf, "testpoint", result_ctx, module_inputs, "testpoint")
         result_ctx = await wf.run_single_node("aggregator", result_ctx)
     else:
         logger.info(f"模块数 {len(modules)} 未超过阈值 {Config.MODULE_SPLIT_THRESHOLD}，使用标准工作流")
@@ -302,7 +313,7 @@ async def knowledgeexecution(task_id: str, case_ids: list, isapi: bool = False, 
         
         # 通过代码获取用例数据（LLM 无法调用外部 API，fetch-cases 由代码完成）
         logger.info(f"[知识提取]   通过代码获取用例数据...")
-        cases, category_name = _fetch_cases_by_code(case_ids)
+        cases, category_name = _fetch_cases_from_api(case_ids)
         ctx.set("cases", cases)
         ctx.set("category_name", category_name)
         logger.info(f"[知识提取]   ✓ 获取到 {len(cases)} 个用例, categoryName: {category_name or '未知'}")
@@ -310,14 +321,14 @@ async def knowledgeexecution(task_id: str, case_ids: list, isapi: bool = False, 
         # 从 summarize-modules 节点开始执行工作流
         logger.info(f"[知识提取]   开始执行节点: summarize-modules")
         try:
-            result_ctx = await wf.run_from_checkpoint("summarize-modules", ctx)
+            result_ctx = await run_from_checkpoint(wf, "summarize-modules", ctx)
         except NodeExecutionError as e:
             # resolve-conflicts 节点失败时，透传 deduped 数据
             if "resolve-conflicts" in str(e):
                 logger.warning(f"[知识提取] resolve-conflicts 节点失败，透传 deduped 数据")
                 deduped = ctx.get("deduped_items", [])
                 ctx.set("resolved_items", deduped)
-                result_ctx = await wf.run_from_checkpoint("consolidate-knowledge", ctx)
+                result_ctx = await run_from_checkpoint(wf, "consolidate-knowledge", ctx)
             else:
                 raise
         logger.info(f"[知识提取]   ✓ 工作流执行完成")

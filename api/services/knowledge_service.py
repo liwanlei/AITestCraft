@@ -2,6 +2,7 @@
 import hashlib
 import json
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -12,9 +13,43 @@ from storage.repositories import create_task, update_task, get_task
 from storage.knowledge_repositories import (
     create_knowledge_base, get_knowledge_base, get_knowledge_items,
     update_knowledge_base, create_knowledge_item, create_knowledge_items_batch,
-    delete_knowledge_items_by_kb, find_knowledge_base_by_cases, find_knowledge_base_by_title
+    delete_knowledge_items_by_kb, find_kb_containing_cases, find_knowledge_base_by_title
 )
 from utils.logger import logger
+
+
+class CaseContentHashIndex:
+    """用例内容哈希索引，封装 JSON 序列化/反序列化
+    
+    用例内容哈希用于检测用例是否发生变更，避免重复提取。
+    存储格式为 JSON 字符串：{"TC001": "md5hash1", "TC002": "md5hash2"}
+    """
+    
+    def __init__(self, hashes_str: str = "{}"):
+        self._hashes: Dict[str, str] = self._parse(hashes_str)
+    
+    @staticmethod
+    def _parse(hashes_str: str) -> Dict[str, str]:
+        try:
+            return json.loads(hashes_str)
+        except Exception:
+            return {}
+    
+    def get(self, case_id: str, default: str = "") -> str:
+        return self._hashes.get(case_id, default)
+    
+    def update(self, new_hashes: Dict[str, str]) -> None:
+        self._hashes.update(new_hashes)
+    
+    def to_json(self) -> str:
+        return json.dumps(self._hashes, ensure_ascii=False)
+    
+    def detect_changes(self, current_hashes: Dict[str, str]) -> List[str]:
+        """对比当前哈希与存储哈希，返回发生变更的用例 ID 列表"""
+        return [
+            case_id for case_id, cur_hash in current_hashes.items()
+            if cur_hash != self._hashes.get(case_id, "")
+        ]
 
 
 def detect_changed_cases(kb: dict, case_ids: List[str]) -> List[str]:
@@ -31,39 +66,16 @@ def detect_changed_cases(kb: dict, case_ids: List[str]) -> List[str]:
     changed_cases = []
     
     try:
-        # 获取知识库中存储的用例内容哈希映射
-        stored_hashes = _parse_stored_hashes(kb.get("case_content_hashes", "{}"))
+        hash_index = CaseContentHashIndex(kb.get("case_content_hashes", "{}"))
         
-        # 调用用例服务获取最新用例内容哈希
-        for case_id in case_ids:
-            case_info = _fetch_case_info(case_id)
-            current_hash = case_info.get("content_hash", "")
-            stored_hash = stored_hashes.get(case_id, "")
-            
-            # 对比内容哈希判断是否变更
-            if current_hash != stored_hash:
-                changed_cases.append(case_id)
+        # 获取最新用例内容哈希
+        current_hashes = _calculate_case_hashes(case_ids)
+        changed_cases = hash_index.detect_changes(current_hashes)
                 
     except Exception as e:
         logger.warning(f"检测用例变更失败: {e}")
     
     return changed_cases
-
-
-def _parse_stored_hashes(hashes_str: str) -> Dict[str, str]:
-    """
-    解析存储的用例内容哈希映射
-    
-    Args:
-        hashes_str: JSON 字符串格式的哈希映射
-        
-    Returns:
-        用例ID到哈希的字典
-    """
-    try:
-        return json.loads(hashes_str)
-    except Exception:
-        return {}
 
 
 def _fetch_category_name(case_id: str) -> str:
@@ -417,11 +429,11 @@ def _apply_knowledge_changes(kb_id: str, items: List[Dict[str, Any]], changed_ca
         new_hashes = _calculate_case_hashes(changed_case_ids)
         # 合并已有哈希：读取旧的，用新的覆盖
         kb = get_knowledge_base(kb_id)
-        stored_hashes = _parse_stored_hashes(kb.get("case_content_hashes", "{}"))
-        stored_hashes.update(new_hashes)
+        hash_index = CaseContentHashIndex(kb.get("case_content_hashes", "{}"))
+        hash_index.update(new_hashes)
         update_knowledge_base(
             kb_id,
-            case_content_hashes=json.dumps(stored_hashes, ensure_ascii=False),
+            case_content_hashes=hash_index.to_json(),
             updated_at=get_db()._now()
         )
     else:
@@ -479,7 +491,7 @@ async def submit_knowledge_task(task_id: str, case_ids: list) -> Dict[str, Any]:
     
     # 回退到按用例 ID 查找
     if not existing_kb:
-        existing_kb = find_knowledge_base_by_cases(case_ids)
+        existing_kb = find_kb_containing_cases(case_ids)
     
     if existing_kb:
         # 检测变更的用例
@@ -762,20 +774,46 @@ def _persist_knowledge_result(kb_id: str, task_id: str, result: Any, case_ids: l
         logger.warning(f"知识库持久化完成: {kb_id}, 但未提取到知识点明细")
 
 
+def build_knowledge_context(kb: dict, items: list) -> str:
+    """构建知识库上下文字符串（供任务服务引用）"""
+    lines = []
+    lines.append("## 知识库上下文\n")
+
+    if kb.get("title"):
+        lines.append(f"### {kb['title']}\n")
+
+    if items:
+        lines.append("### 需求知识点：\n")
+        for item in items:
+            module = item.get("module", "")
+            item_type = item.get("item_type", "")
+            content = item.get("content", "")
+            lines.append(f"- [{module}] {item_type}: {content}\n")
+
+    return "\n".join(lines)
+
+
 def _calculate_case_hashes(case_ids: list) -> Dict[str, str]:
     """
-    计算用例内容哈希映射
-    
+    计算用例内容哈希映射（并发执行）
+
     Args:
         case_ids: 用例 ID 列表
-        
+
     Returns:
         用例ID到内容哈希的字典
     """
     hashes = {}
-    for case_id in case_ids:
-        case_info = _fetch_case_info(case_id)
-        hashes[case_id] = case_info.get("content_hash", "")
+    with ThreadPoolExecutor(max_workers=Config.KNOWLEDGE_FETCH_CONCURRENCY) as executor:
+        future_to_id = {executor.submit(_fetch_case_info, cid): cid for cid in case_ids}
+        for future in as_completed(future_to_id):
+            case_id = future_to_id[future]
+            try:
+                case_info = future.result()
+                hashes[case_id] = case_info.get("content_hash", "")
+            except Exception as e:
+                logger.warning(f"获取用例 {case_id} 哈希失败: {e}")
+                hashes[case_id] = ""
     return hashes
 
 

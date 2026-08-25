@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """存储模块单元测试"""
+import json
 import sqlite3
 import unittest
 import uuid
@@ -9,7 +10,10 @@ from unittest.mock import Mock, patch, MagicMock
 from storage.db import get_db, init_db
 from storage.repositories import (
     create_task, get_task, update_task,
-    insert_log, get_logs
+    insert_log, get_logs, get_connection
+)
+from storage.knowledge_repositories import (
+    create_knowledge_base, get_knowledge_base, find_kb_containing_cases
 )
 from utils.exceptions import TaskNotFoundError, DatabaseError
 from utils.logger import logger
@@ -113,6 +117,104 @@ class TestLogRepositories(unittest.TestCase):
         """测试获取空日志"""
         logs = get_logs(self.test_task_id)
         self.assertEqual(len(logs), 0)
+
+
+class TestKnowledgeRepositories(unittest.TestCase):
+    """知识库仓库集成测试"""
+
+    def setUp(self):
+        init_db()
+        self.test_kb_id = f"test-kb-{uuid.uuid4().hex[:8]}"
+        self.test_task_id = f"test-task-kb-{uuid.uuid4().hex[:8]}"
+        self.test_case_ids = json.dumps(["TC001", "TC002", "TC005"], ensure_ascii=False)
+
+    def tearDown(self):
+        # 清理测试数据
+        db = get_db()
+        with get_connection() as conn:
+            conn.execute("DELETE FROM knowledge_bases WHERE id LIKE ?", (f"test-kb-%",))
+            conn.execute("DELETE FROM knowledge_items WHERE knowledge_base_id LIKE ?", (f"test-kb-%",))
+            conn.commit()
+
+    def test_create_and_get_knowledge_base(self):
+        """创建并查询知识库"""
+        create_knowledge_base(
+            self.test_kb_id,
+            task_id=self.test_task_id,
+            title="手机号登录",
+            modules_json='["手机号登录"]',
+            source_case_ids=self.test_case_ids,
+            case_content_hashes='{"TC001": "hash1", "TC002": "hash2"}'
+        )
+        kb = get_knowledge_base(self.test_kb_id)
+        self.assertEqual(kb["id"], self.test_kb_id)
+        self.assertEqual(kb["title"], "手机号登录")
+        self.assertEqual(kb["status"], "active")
+
+    def test_find_kb_containing_cases_match(self):
+        """查找包含指定用例的知识库——匹配"""
+        create_knowledge_base(
+            self.test_kb_id,
+            task_id=self.test_task_id,
+            title="测试",
+            source_case_ids=self.test_case_ids,
+        )
+        kb = find_kb_containing_cases(["TC002", "TC999"])
+        self.assertIsNotNone(kb)
+        self.assertEqual(kb["id"], self.test_kb_id)
+
+    def test_find_kb_containing_cases_no_match(self):
+        """查找包含指定用例的知识库——不匹配"""
+        create_knowledge_base(
+            self.test_kb_id,
+            task_id=self.test_task_id,
+            title="测试",
+            source_case_ids=self.test_case_ids,
+        )
+        kb = find_kb_containing_cases(["TC999", "TC100"])
+        self.assertIsNone(kb)
+
+    def test_find_kb_containing_cases_empty_input(self):
+        """空输入应返回 None"""
+        self.assertIsNone(find_kb_containing_cases([]))
+
+    def test_find_kb_containing_cases_multiple_kbs(self):
+        """多个知识库，应返回第一个匹配的"""
+        kb_id2 = f"test-kb-{uuid.uuid4().hex[:8]}"
+        create_knowledge_base(
+            self.test_kb_id,
+            task_id=self.test_task_id,
+            title="KB1",
+            source_case_ids=json.dumps(["TC001", "TC002"]),
+        )
+        create_knowledge_base(
+            kb_id2,
+            task_id=self.test_task_id,
+            title="KB2",
+            source_case_ids=json.dumps(["TC003", "TC004"]),
+        )
+        # 查找 TC003，应返回 KB2
+        kb = find_kb_containing_cases(["TC003"])
+        self.assertIsNotNone(kb)
+        self.assertEqual(kb["title"], "KB2")
+
+    def test_get_knowledge_base_not_found(self):
+        """查询不存在的知识库，应抛出 DatabaseError"""
+        with self.assertRaises(DatabaseError):
+            get_knowledge_base(f"non-existent-{uuid.uuid4().hex[:8]}")
+
+    def test_update_knowledge_base(self):
+        """更新知识库"""
+        from storage.knowledge_repositories import update_knowledge_base
+        create_knowledge_base(
+            self.test_kb_id,
+            task_id=self.test_task_id,
+            title="原标题",
+            source_case_ids=self.test_case_ids,
+        )
+        update_knowledge_base(self.test_kb_id, title="新标题")
+        kb = get_knowledge_base(self.test_kb_id)
+        self.assertEqual(kb["title"], "新标题")
 
 
 if __name__ == "__main__":

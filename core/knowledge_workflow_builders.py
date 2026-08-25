@@ -2,7 +2,7 @@
 from typing import Any, Callable, Dict, Optional
 
 from core.context import Context
-from core.node import Node
+from core.node import Node, NodeConfig
 from core.workflow import Workflow
 from utils.logger import logger
 
@@ -82,7 +82,7 @@ def build_knowledge_workflow(
     """
     构建知识提取工作流（4节点）
 
-    用例获取（fetch-cases）由代码完成（_fetch_cases_by_code），
+    用例获取（fetch-cases）由代码完成（_fetch_cases_from_api），
     因为 LLM 无法调用外部 API。工作流从 summarize-modules 开始。
 
     节点流程：
@@ -102,25 +102,18 @@ def build_knowledge_workflow(
 
     # 定义节点配置（fetch-cases 由代码完成，不纳入工作流）
     node_configs = [
-        ("summarize-modules", agents.get("summarize-modules"), _build_summarize_input, "module_knowledge", "json"),
-        ("dedup-knowledge", agents.get("dedup-knowledge"), _build_dedup_input, "deduped_items", "json"),
-        ("resolve-conflicts", agents.get("resolve-conflicts"), _build_resolve_conflicts_input, "resolved_items", "json"),
-        ("consolidate-knowledge", agents.get("consolidate-knowledge"), _build_consolidate_input, "final_knowledge", "mixed"),
+        NodeConfig("summarize-modules", agents.get("summarize-modules"), _build_summarize_input, "module_knowledge", output_format="json"),
+        NodeConfig("dedup-knowledge", agents.get("dedup-knowledge"), _build_dedup_input, "deduped_items", output_format="json"),
+        NodeConfig("resolve-conflicts", agents.get("resolve-conflicts"), _build_resolve_conflicts_input, "resolved_items", output_format="json"),
+        NodeConfig("consolidate-knowledge", agents.get("consolidate-knowledge"), _build_consolidate_input, "final_knowledge", output_format="mixed"),
     ]
 
-    for name, agent, input_fn, output_key, output_format in node_configs:
-        if agent is None:
-            logger.warning(f"[知识提取] Agent for node {name} is not available, skipping")
+    for cfg in node_configs:
+        if cfg.agent is None:
+            logger.warning(f"[知识提取] Agent for node {cfg.name} is not available, skipping")
             continue
-        node_model_settings = model_configs.get(name)
-        wf.add_node(Node(
-            name=name,
-            agent=agent,
-            input_fn=input_fn,
-            output_key=output_key,
-            output_format=output_format,
-            model_settings=node_model_settings
-        ))
+        node_model_settings = model_configs.get(cfg.name)
+        wf.add_node(Node(cfg._replace(model_settings=node_model_settings)))
 
     # 定义边（节点执行顺序）
     edges = [

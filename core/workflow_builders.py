@@ -1,28 +1,17 @@
 # -*- coding: utf-8 -*-
 import json
 import re
-from typing import Any, Callable, Dict, List, NamedTuple, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from config.config import Config
 from core.schemas import TESTCASE_SCHEMA, GAP_SCHEMA
 from core.context import Context
-from core.node import Node
+from core.node import Node, NodeConfig
 from core.workflow import Workflow
 from utils.logger import logger
 
 # 工作流节点执行顺序
 WORKFLOW_NODE_ORDER = ["requirement", "testpoint", "aggregator", "testcase", "review", "coverage", "gap"]
-
-
-class NodeConfig(NamedTuple):
-    name: str
-    agent: Any
-    input_fn: Callable[[Context], str]
-    output_key: str
-    schema: Optional[Dict] = None
-    condition: Optional[Callable[[Context], bool]] = None
-    model_settings: Optional[Dict] = None
-    output_format: str = "json"
 
 
 def _build_requirement_input(ctx: Context) -> str:
@@ -193,16 +182,7 @@ def build_workflow(agents: Dict[str, Any], model_configs: Optional[Dict[str, Dic
     ]
 
     for cfg in node_configs:
-        wf.add_node(Node(
-            name=cfg.name,
-            agent=cfg.agent,
-            input_fn=cfg.input_fn,
-            output_key=cfg.output_key,
-            schema=cfg.schema,
-            condition=cfg.condition,
-            model_settings=cfg.model_settings,
-            output_format=cfg.output_format
-        ))
+        wf.add_node(Node(cfg))
 
     edges = [
         ("requirement", "testpoint"),

@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import Mock, patch, MagicMock
 
 from core.context import Context, TokenStats
+from core.node import Node, NodeConfig
 from core.workflow_builders import _to_text, _gap_condition, WORKFLOW_NODE_ORDER
 
 
@@ -237,6 +238,100 @@ class TestGapCondition(unittest.TestCase):
         ctx["review"] = ["not a string"]
         ctx["coverage"] = 123
         self.assertFalse(_gap_condition(ctx))
+
+
+class TestNodeConfig(unittest.TestCase):
+    """NodeConfig + Node 集成测试"""
+
+    def test_node_created_with_config(self):
+        """Node 可通过 NodeConfig 创建"""
+        mock_agent = Mock()
+        mock_input_fn = Mock(return_value="input")
+
+        config = NodeConfig("test-node", mock_agent, mock_input_fn, "output_key")
+        node = Node(config)
+
+        self.assertEqual(node.name, "test-node")
+        self.assertIs(node.agent, mock_agent)
+        self.assertIs(node.input_fn, mock_input_fn)
+        self.assertEqual(node.output_key, "output_key")
+        self.assertEqual(node.output_format, "json")
+
+    def test_node_config_defaults(self):
+        """NodeConfig 的默认值"""
+        mock_agent = Mock()
+        mock_input_fn = Mock(return_value="input")
+
+        config = NodeConfig("test-node", mock_agent, mock_input_fn, "output_key")
+        self.assertIsNone(config.schema)
+        self.assertIsNone(config.condition)
+        self.assertIsNone(config.model_settings)
+        self.assertEqual(config.output_format, "json")
+
+    def test_node_config_custom_values(self):
+        """NodeConfig 自定义值"""
+        mock_agent = Mock()
+        mock_input_fn = Mock(return_value="input")
+        mock_schema = {"type": "object"}
+        mock_condition = Mock(return_value=True)
+
+        config = NodeConfig(
+            name="test-node",
+            agent=mock_agent,
+            input_fn=mock_input_fn,
+            output_key="output_key",
+            schema=mock_schema,
+            condition=mock_condition,
+            model_settings={"temperature": 0.7},
+            output_format="md"
+        )
+        self.assertIs(config.schema, mock_schema)
+        self.assertIs(config.condition, mock_condition)
+        self.assertEqual(config.model_settings, {"temperature": 0.7})
+        self.assertEqual(config.output_format, "md")
+
+    def test_node_config_output_format_mixed(self):
+        """output_format 支持 mixed 格式"""
+        mock_agent = Mock()
+        mock_input_fn = Mock(return_value="input")
+        config = NodeConfig("test", mock_agent, mock_input_fn, "output", output_format="mixed")
+        node = Node(config)
+        self.assertEqual(node.output_format, "mixed")
+
+    def test_node_config_schema_propagation(self):
+        """schema 从 NodeConfig 传递到 Node"""
+        mock_agent = Mock()
+        mock_input_fn = Mock(return_value="input")
+        schema = {"type": "array", "items": {"type": "string"}}
+        config = NodeConfig("test", mock_agent, mock_input_fn, "output", schema=schema)
+        node = Node(config)
+        self.assertIs(node.schema, schema)
+
+    def test_node_config_condition_propagation(self):
+        """condition 从 NodeConfig 传递到 Node"""
+        mock_agent = Mock()
+        mock_input_fn = Mock(return_value="input")
+        condition = Mock(return_value=True)
+        config = NodeConfig("test", mock_agent, mock_input_fn, "output", condition=condition)
+        node = Node(config)
+        self.assertIs(node.condition, condition)
+
+    def test_node_multiple_nodes_unique_instances(self):
+        """多个 Node 应互不干扰"""
+        mock_agent = Mock()
+        input_fn1 = Mock(return_value="input1")
+        input_fn2 = Mock(return_value="input2")
+
+        config1 = NodeConfig("node1", mock_agent, input_fn1, "key1")
+        config2 = NodeConfig("node2", mock_agent, input_fn2, "key2")
+
+        node1 = Node(config1)
+        node2 = Node(config2)
+
+        self.assertEqual(node1.name, "node1")
+        self.assertEqual(node2.name, "node2")
+        self.assertEqual(node1.output_key, "key1")
+        self.assertEqual(node2.output_key, "key2")
 
 
 if __name__ == "__main__":
