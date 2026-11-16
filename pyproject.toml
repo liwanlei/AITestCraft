@@ -15,3 +15,16 @@ dependencies = [
     "requests>=2.31.0",
     "markdown-it-py>=3.0.0",
 ]
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "api*",
+  "agents*",
+  "config*",
+  "core*",
+  "formatters*",
+  "skills*",
+  "storage*",
+  "utils*",
+]
+exclude = ["tests*", "docs*", ".idea*"]
