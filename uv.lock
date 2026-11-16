@@ -181,27 +181,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/3d/ec/f4a880d4d40e1c49e5996b5a9a87f54015782fa05136665731c9fb8fc1d4/agent_framework_copilotstudio-1.0.0b260319-py3-none-any.whl", hash = "sha256:badff9bfbc2191340ccc3d49a817fc5152a183479327762ccc96cfa21c94e560", size = 8541, upload-time = "2026-03-20T01:44:16.041Z" },
 ]
 
-[[package]]
-name = "agent-framework-core"
-version = "1.0.0rc5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "azure-ai-projects" },
-    { name = "azure-identity" },
-    { name = "mcp", extra = ["ws"] },
-    { name = "openai" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-sdk" },
-    { name = "opentelemetry-semantic-conventions-ai" },
-    { name = "packaging" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/96/0a75aace08755d6d299de1ce0bf9f042ab309b870c7a40fb60a5a74a626c/agent_framework_core-1.0.0rc5.tar.gz", hash = "sha256:156bed9154a3be5c35000f240c0bef0cf9c4a39b65b9c5c139af5c4a10871f1a", size = 312046, upload-time = "2026-03-20T01:44:05.481Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/22/b203b06a23636771bff66e5f2185afcb4a5fe8bf76f58c32dd164c670523/agent_framework_core-1.0.0rc5-py3-none-any.whl", hash = "sha256:c906c6edac1f7db97e047e0958e77819b43406fb4cb4efcffb3fe042b69029c8", size = 359665, upload-time = "2026-03-20T01:44:03.547Z" },
-]
 
 [package.optional-dependencies]
 all = [
